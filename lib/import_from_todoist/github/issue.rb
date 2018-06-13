@@ -1,6 +1,6 @@
 module ImportFromTodoist
   module Github
-    class Issue < Struct.new(:id, :number, :title, :body)
+    class Issue < Struct.new(:id, :number, :title, :state, :body, :milestone_number, :label_names)
       private_class_method :new
 
       def self.generate_github_description(todoist_id, description = '') # TODO: Remove
@@ -15,19 +15,25 @@ module ImportFromTodoist
       end
 
       def self.from_github(hash)
-        new(hash.fetch('id'), hash.fetch('number'), hash.fetch('title'), hash.fetch('body'))
+        milestone_hash = hash.fetch('milestone')
+        milestone_number = milestone_hash ? ImportFromTodoist::Github::Milestone.from_github(milestone_hash).number : nil
+        labels = hash.fetch('labels', []).map { |label_hash| ImportFromTodoist::Github::Label.from_github(label_hash).name }
+        new(hash.fetch('id'), hash.fetch('number'), hash.fetch('title'), hash.fetch('state'), hash.fetch('body'), milestone_number, labels.sort)
       end
 
-      def self.from_todoist_task(task)
-        new(nil, nil, task.content, generate_github_description(task.id))
+      def self.from_hash(hash)
+        new(nil, nil, hash.fetch(:title), hash.fetch(:state), hash.fetch(:body), hash[:milestone_number], hash.fetch(:labels, []).sort)
       end
 
       def creation_hash
-        { title: :title, body: :body }
+        hash = { title: title, state: state, body: body }
+        hash[:milestone] = milestone_number if milestone_number
+        hash[:labels] = label_names unless label_names.empty?
+        hash
       end
 
       def mutable_value_hash
-        to_h.keep_if { |key, _value| !%i[id number].include? key }
+        creation_hash
       end
     end
   end

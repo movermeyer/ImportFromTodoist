@@ -12,7 +12,7 @@ module ImportFromTodoist
       end
 
       def creation_hash
-        { name: :name, color: :color }
+        { name: name, color: color }
       end
 
       def mutable_value_hash

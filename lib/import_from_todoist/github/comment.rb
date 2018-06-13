@@ -1,34 +1,38 @@
 module ImportFromTodoist
   module Github
-    class Project < Struct.new(:id, :name, :body, :state)
+    class Comment < Struct.new(:id, :body)
       private_class_method :new
 
-      def self.generate_github_description(todoist_id, description = '') # TODO: Remove
+      def self.generate_github_description(todoist_comment, todoist_collaborator, description = '') # TODO: Remove
         # Generates a description that includes a GitHub Markdown comment (ie.
         # hack, see https://stackoverflow.com/a/20885980/6460914). That way, the
         # Todoist id can be embedded for easy cross-referencing in future runs.
         ''"#{description}
 
+---
+
+**Originally written**#{todoist_collaborator ? " **by** `#{todoist_collaborator.full_name}`" : ''} at `#{todoist_comment.post_time}`
+**Imported from [Todoist](TODO: Url)**
+
 [//]: # (Warning: DO NOT DELETE!)
 [//]: # (The below comment is important for making Todoist imports work. For more details, see TODO: Add URL)
-[//]: # (TODOIST_ID: #{todoist_id})"''
+[//]: # (TODOIST_ID: #{todoist_comment.id})"''
       end
 
       def self.from_github(hash)
-        new(hash.fetch('id'), hash.fetch('name'), hash.fetch('body'), hash.fetch('state'))
+        new(hash.fetch('id'), hash.fetch('body'))
       end
 
-      def self.from_todoist_project(project)
-        state = project.is_deleted == 1 || project.is_archived == 1 ? 'closed' : 'open'
-        new(nil, project.name, generate_github_description(project.id), state)
+      def self.from_todoist_comment(comment, collaborator)
+        new(nil, generate_github_description(comment, collaborator, comment.content))
       end
 
       def creation_hash
-        { name: name, body: body }
+        { body: body }
       end
 
       def mutable_value_hash
-        to_h.keep_if { |key, _value| key != :id }
+        creation_hash
       end
     end
   end
