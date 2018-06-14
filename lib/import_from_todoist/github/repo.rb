@@ -18,6 +18,11 @@ module ImportFromTodoist
         @labels_by_name = Hash[labels.map { |label| [label.name, label] }]
       end
 
+      def private?
+        response = connection.get("/repos/#{name}")
+        JSON.load(response.body)['private']
+      end
+
       def project_cards(column)
         response = connection.get("/projects/columns/#{url_encode(column.id)}/cards", state: 'all')
         JSON.parse(response.body).map { |json| ImportFromTodoist::Github::ProjectCard.from_github(patch_project_card_content(json)) }
