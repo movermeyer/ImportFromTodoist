@@ -1,3 +1,5 @@
+require 'date'
+
 module ImportFromTodoist
   module Todoist
     class Task < Struct.new(:id, :content, :project_id, :completed, :due_on, :labels, :priority)
@@ -9,11 +11,12 @@ module ImportFromTodoist
 
       def self.from_todoist(hash)
         priority = hash['priority']
+        due_on = hash['due_on']
         new(hash.fetch('id'),
             hash.fetch('content'),
             hash.fetch('project_id'),
             (hash.fetch('checked', 0) == 1 || !hash['completed_date'].nil?), # TODO: Remove nil check?
-            hash['due_on'],
+            due_on ? DateTime.iso8601(due_on) : nil,
             hash.fetch('labels', []),
             priority ? (MAX_PRIORITY - priority + 1) : nil)
       end

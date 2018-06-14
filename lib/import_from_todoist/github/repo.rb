@@ -154,6 +154,18 @@ module ImportFromTodoist
         ImportFromTodoist::Github::Milestone.from_github(JSON.load(response.body))
       end
 
+      def update_milestone(milestone, changes_needed)
+        return milestone if changes_needed.empty?
+        puts "Updating milestone \##{milestone.number}: #{changes_needed}"
+        response = connection.patch do |req|
+          req.url "/repos/#{name}/milestones/#{url_encode(milestone.number)}"
+          req.body = JSON.dump(changes_needed)
+        end
+
+        ImportFromTodoist::Github::Milestone.from_github(JSON.load(response.body))
+      end
+
+
       def create_comment(comment, issue)
         puts "Creating new comment on issue: #{issue.title} (\##{issue.number})"
 

@@ -32,13 +32,13 @@ module ImportFromTodoist
       @todoist_api = ImportFromTodoist::Todoist::Api.new(todoist_api_token, no_cache: no_cache)
       @github_repo = ImportFromTodoist::Github::Repo.new(github_repo_name, github_api_token)
 
-      @todoist_task_id_to_github_issue = {}
       @todoist_comment_id_to_github_comment = {}
-      @todoist_project_comment_id_to_github_project_card = {}
-      @todoist_project_id_to_github_project = {}
-      @todoist_due_date_to_github_milestone = {}
       @todoist_label_id_to_github_label = {}
       @todoist_priority_to_github_label = {}
+      @todoist_project_comment_id_to_github_project_card = {}
+      @todoist_project_id_to_github_project = {}
+      @todoist_task_id_to_github_issue = {}
+      @todoist_task_id_to_github_milestone = {}
 
       @columns_by_project_id_and_column_name = {} # Cache elsewhere?
       @cards_by_column_id_and_target_id = {} # Cache elsewhere?
@@ -57,7 +57,8 @@ module ImportFromTodoist
 
       # Fetch existing milestones
       github_repo.milestones.each do |milestone|
-        todoist_due_date_to_github_milestone[milestone.title] = milestone
+        todist_id = get_todist_id(milestone.description)
+        todoist_task_id_to_github_milestone[todist_id] = milestone if todist_id
       end
 
       # Fetch existing comments
@@ -92,13 +93,17 @@ module ImportFromTodoist
       todoist_project_id_to_github_project[todoist_project_id] = github_repo.update_project(existing_project, changes_needed)
     end
 
-    def milestone(todoist_due_date)
-      unless todoist_due_date_to_github_milestone.key?(todoist_due_date)
-        uncommited_github_milestone = ImportFromTodoist::Github::Milestone.from_due_date(todoist_due_date) # TODO: rename?
-        todoist_due_date_to_github_milestone[todoist_due_date] = github_repo.create_milestone(uncommited_github_milestone)
+    def milestone(todoist_task)
+      desired_milestone = ImportFromTodoist::Github::Milestone.from_todoist_task(todoist_task)
+      unless todoist_task_id_to_github_milestone.key?(todoist_task.id)
+        todoist_task_id_to_github_milestone[todoist_task.id] = github_repo.create_milestone(desired_milestone)
       end
-      # TODO: Handle updates
-      todoist_due_date_to_github_milestone[todoist_due_date]
+
+      existing_milestone = todoist_task_id_to_github_milestone[todoist_task.id]
+
+      # Update Milestone if necessary
+      changes_needed = diff_hashes(desired_milestone.mutable_value_hash, existing_milestone.mutable_value_hash)
+      todoist_task_id_to_github_milestone[todoist_task.id] = github_repo.update_milestone(existing_milestone, changes_needed)
     end
 
     def label_helper(existing_label, todoist_label)
@@ -120,7 +125,6 @@ module ImportFromTodoist
     end
 
     def label(todoist_label)
-      # Does caching that isn't done in label_helper since `priority` also uses it and can't cache.
       todoist_label_id_to_github_label[todoist_label.id] = label_helper(todoist_label_id_to_github_label[todoist_label.id], todoist_label)
     end
 
@@ -132,7 +136,7 @@ module ImportFromTodoist
         labels: todoist_task.labels.map { |label_id| label(todoist_api.label(label_id)).name },
         state: todoist_task.completed ? 'closed' : 'open'
       }
-      desired_issue_hash[:milestone_number] = milestone(todoist_task.due_on).number if todoist_task.due_on
+      desired_issue_hash[:milestone_number] = milestone(todoist_task).number if todoist_task.due_on
       desired_issue_hash[:labels] += [priority(todoist_task.priority).name] if todoist_task.priority
       desired_issue = ImportFromTodoist::Github::Issue.from_hash(desired_issue_hash)
 
@@ -205,14 +209,14 @@ module ImportFromTodoist
 
     attr_reader :todoist_api
     attr_reader :github_repo
-    attr_accessor :todoist_task_id_to_github_issue
+    attr_accessor :cards_by_column_id_and_target_id # TODO: move elsewhere?
+    attr_accessor :columns_by_project_id_and_column_name # TODO: move elsewhere?
     attr_accessor :todoist_comment_id_to_github_comment
-    attr_accessor :todoist_project_comment_id_to_github_project_card
-    attr_accessor :todoist_project_id_to_github_project
-    attr_accessor :todoist_due_date_to_github_milestone
     attr_accessor :todoist_label_id_to_github_label
     attr_accessor :todoist_priority_to_github_label
-    attr_accessor :columns_by_project_id_and_column_name # TODO: move elsewhere?
-    attr_accessor :cards_by_column_id_and_target_id # TODO: move elsewhere?
+    attr_accessor :todoist_project_comment_id_to_github_project_card
+    attr_accessor :todoist_project_id_to_github_project
+    attr_accessor :todoist_task_id_to_github_issue
+    attr_accessor :todoist_task_id_to_github_milestone
   end
 end

@@ -91,8 +91,13 @@ module ImportFromTodoist
           end
         else
           todoist_response = rest_api_connection.get('/API/v8/tasks')
+          open(File.join(@cache_dir, 'tasks_rest_api.json'), 'w') do |fout|
+            fout.write(JSON.dump(JSON.parse(todoist_response.body)))
+          end
+
           due_dates = JSON.parse(todoist_response.body).each_with_object({}) do |task, hash|
-            hash[task['id']] = task.fetch('due', {})['date']
+            due = task.fetch('due', {})
+            hash[task['id']] = due['datetime'] || due['date']
           end
           merged_hashes = results.map { |hash| hash.merge('due_on' => due_dates[hash.fetch('id')]) }
           open(cache_file, 'w') do |fout|
