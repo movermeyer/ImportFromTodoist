@@ -233,6 +233,13 @@ module ImportFromTodoist
         ImportFromTodoist::Github::ProjectCard.from_github(patch_project_card_content(JSON.load(response.body)))
       end
 
+      def move_project_card(project_card, column, position = 'top')
+        response = connection.post do |req|
+          req.url "/projects/columns/cards/#{url_encode(project_card.id)}/moves"
+          req.body = JSON.dump(position: position, column_id: desired_column.id)
+        end
+      end
+
       private
 
       attr_reader :api_token

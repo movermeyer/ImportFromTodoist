@@ -1,5 +1,7 @@
 module ImportFromTodoist
   class System
+    PROJECT_COLUMNS = Set['Comments', 'To Do', 'Completed']
+
     def diff_hashes(hash1, hash2)
       # Something like `{ a: 1 }.to_a & { a: 1, b: 2 }.to_a` or set difference, left_align
       # TODO: There is probably a better way to do this.
@@ -41,7 +43,7 @@ module ImportFromTodoist
       @todoist_task_id_to_github_milestone = {}
 
       @columns_by_project_id_and_column_name = {} # Cache elsewhere?
-      @cards_by_column_id_and_target_id = {} # Cache elsewhere?
+      @cards_by_project_id_and_target_id = {} # Cache elsewhere?
 
       # Fetch existing issues
       github_repo.issues.each do |issue|
@@ -84,7 +86,7 @@ module ImportFromTodoist
       existing_project = todoist_project_id_to_github_project[todoist_project_id]
 
       # Ensuring Project Columns exist
-      desired_project_column_names = Set['To Do', 'Comments']
+      desired_project_column_names = PROJECT_COLUMNS
       _project_columns = desired_project_column_names.map { |column_name| project_column(existing_project, ImportFromTodoist::Github::ProjectColumn.from_name(column_name)) }
 
       # Update Project if necessary
@@ -151,27 +153,38 @@ module ImportFromTodoist
       todoist_task_id_to_github_issue[todoist_task.id] = github_repo.update_issue(existing_issue, changes_needed)
     end
 
-    def fetch_project_cards(column)
-      unless cards_by_column_id_and_target_id.key? column.id
-        cards_by_column_id_and_target_id[column.id] = {}
-        cards = github_repo.project_cards(column)
-        cards.each do |card|
-          if card.note
-            todist_id = get_todist_id(card.note)
-            cards_by_column_id_and_target_id[column.id][todist_id] = card if todist_id # TODO: Only cache the ids here. repo should cache the actual objects
-          else
-            cards_by_column_id_and_target_id[column.id][card.content_id] = card
+    def fetch_project_cards(target_project)
+      unless cards_by_project_id_and_target_id.key? target_project.id
+        cards_by_project_id_and_target_id[target_project.id] = {}
+        project_columns = PROJECT_COLUMNS.map { |column_name| project_column(target_project, ImportFromTodoist::Github::ProjectColumn.from_name(column_name)) }
+        project_columns.each do |column|
+          puts "Fetching from column '#{column.name}' of project '#{target_project.name}'"
+          cards = github_repo.project_cards(column)
+          cards.each do |card|
+            if card.note
+              todist_id = get_todist_id(card.note)
+              cards_by_project_id_and_target_id[target_project.id][todist_id] = card if todist_id # TODO: Only cache the ids here. repo should cache the actual objects
+            else
+              cards_by_project_id_and_target_id[target_project.id][card.content_id] = card
+            end
           end
         end
       end
-      cards_by_column_id_and_target_id[column.id]
+      cards_by_project_id_and_target_id[target_project.id]
     end
 
     def project_card(target_project, issue)
       desired_card = ImportFromTodoist::Github::ProjectCard.from_github_issue(issue)
       column = project_column(target_project, ImportFromTodoist::Github::ProjectColumn.from_name('To Do')) # TODO: Refactor out this constant "To Do"
-      fetch_project_cards(column)
-      cards_by_column_id_and_target_id[column.id][issue.id] ||= github_repo.create_project_card(desired_card, column)
+      fetch_project_cards(target_project)
+
+      unless cards_by_project_id_and_target_id[target_project.id].key? issue.id
+        cards_by_project_id_and_target_id[target_project.id][issue.id] ||= github_repo.create_project_card(desired_card, column)
+      end
+
+      existing_card = cards_by_project_id_and_target_id[target_project.id][issue.id]
+
+      # TODO: Move the card to a new position or column
     end
 
     def comment(target_issue, todoist_comment)
@@ -192,24 +205,24 @@ module ImportFromTodoist
       desired_card = ImportFromTodoist::Github::ProjectCard.from_todoist_project_comment(todoist_comment, todoist_api.collaborator(todoist_comment.poster))
 
       column = project_column(target_project, ImportFromTodoist::Github::ProjectColumn.from_name('Comments')) # TODO: Refactor out this constant "Comments"
-      existing_cards = fetch_project_cards(column)
+      existing_cards = fetch_project_cards(target_project)
 
       unless existing_cards.key?(todoist_comment.id)
-        cards_by_column_id_and_target_id[column.id][todoist_comment.id] = github_repo.create_project_card(desired_card, column)
+        cards_by_project_id_and_target_id[target_project.id][todoist_comment.id] = github_repo.create_project_card(desired_card, column)
       end
 
-      existing_card = cards_by_column_id_and_target_id[column.id][todoist_comment.id]
+      existing_card = cards_by_project_id_and_target_id[target_project.id][todoist_comment.id]
 
       # # Update comment if necessary
       changes_needed = diff_hashes(desired_card.mutable_value_hash, existing_card.mutable_value_hash)
-      cards_by_column_id_and_target_id[column.id][todoist_comment.id] = github_repo.update_project_card(existing_card, changes_needed)
+      cards_by_project_id_and_target_id[target_project.id][todoist_comment.id] = github_repo.update_project_card(existing_card, changes_needed)
     end
 
     private
 
     attr_reader :todoist_api
     attr_reader :github_repo
-    attr_accessor :cards_by_column_id_and_target_id # TODO: move elsewhere?
+    attr_accessor :cards_by_project_id_and_target_id # TODO: move elsewhere?
     attr_accessor :columns_by_project_id_and_column_name # TODO: move elsewhere?
     attr_accessor :todoist_comment_id_to_github_comment
     attr_accessor :todoist_label_id_to_github_label
