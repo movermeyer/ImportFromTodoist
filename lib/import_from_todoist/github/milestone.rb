@@ -13,7 +13,7 @@ module ImportFromTodoist
         ''"#{description}
 
 [//]: # (Warning: DO NOT DELETE!)
-[//]: # (The below comment is important for making Todoist imports work. For more details, see TODO: Add URL)
+[//]: # (The below comment is important for making Todoist imports work. For more details, see https://github.com/movermeyer/ImportFromTodoist/blob/master/docs/data_mapping.md#associating-objects-across-changes)
 [//]: # (TODOIST_ID: #{todoist_id})"''
       end
 

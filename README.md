@@ -60,7 +60,7 @@ Consider this repo to be unmaintained, beta quality code.
     ```
 1. Fetch the Ruby dependencies:
     ```
-    bundler
+    bundle install
     ```
 1. Create a file called `.todoist_api_token` and put your [Todoist Personal API Token](https://todoist.com/Users/viewPrefs?page=integrations) into it.
     * Example: `0123456789abcdef0123456789abcdef01234567`
