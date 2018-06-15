@@ -25,7 +25,7 @@ This document will give you an overview of how the code is structured, as well a
 
 ## Overview
 
-
+![code structure](img/code_structure.png)
 
 ## cli.rb
 
