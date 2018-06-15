@@ -66,5 +66,5 @@ You can allow importing into public repos by running #{$PROGRAM_NAME} with the `
     exit(1)
   end
 
-  ImportFromTodoist::Importer.new(todoist_api_token, github_api_token, github_repo_name, no_cache = options[:no_cache]).import(options[:projects])
+  ImportFromTodoist::Importer.new(todoist_api_token, github_api_token, github_repo_name, no_cache = options[:no_cache]).sync(options[:projects])
 end
