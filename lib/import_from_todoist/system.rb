@@ -2,36 +2,8 @@ module ImportFromTodoist
   class System
     PROJECT_COLUMNS = Set['Comments', 'To Do', 'Completed']
 
-    def diff_hashes(hash1, hash2)
-      # Something like `{ a: 1 }.to_a & { a: 1, b: 2 }.to_a` or set difference, left_align
-      # TODO: There is probably a better way to do this.
-      differences = {}
-      hash1.each do |key, value|
-        differences[key] = value if hash2[key] != value
-      end
-
-      differences
-    end
-
-    def get_todist_id(description)
-      return description if description.nil?
-      match = description.match(/TODOIST_ID: (\d+)/)
-      todist_id = match.captures.first.to_i if match
-    end
-
-    def generate_github_description(todoist_id, description = '') # TODO: Remove
-      # Generates a description that includes a GitHub Markdown comment (ie.
-      # hack, see https://stackoverflow.com/a/20885980/6460914). That way, the
-      # Todoist id can be embedded for easy cross-referencing in future runs.
-      ''"#{description}
-
-[//]: # (Warning: DO NOT DELETE!)
-[//]: # (The below comment is important for making Todoist imports work. For more details, see TODO: Add URL)
-[//]: # (TODOIST_ID: #{todoist_id})"''
-    end
-
-    def initialize(todoist_api_token, github_api_token, github_repo_name, no_cache)
-      @todoist_api = ImportFromTodoist::Todoist::Api.new(todoist_api_token, no_cache: no_cache)
+    def initialize(todoist_api_token, github_api_token, github_repo_name)
+      @todoist_api = ImportFromTodoist::Todoist::Api.new(todoist_api_token)
       @github_repo = ImportFromTodoist::Github::Repo.new(github_repo_name, github_api_token)
 
       @todoist_comment_id_to_github_comment = {}
@@ -77,7 +49,6 @@ module ImportFromTodoist
 
     def project(todoist_project_id)
       todoist_project = todoist_api.project(todoist_project_id)
-      puts "Processing #{todoist_project.name}"
       unless todoist_project_id_to_github_project.key?(todoist_project_id)
         uncommited_github_project = ImportFromTodoist::Github::Project.from_todoist_project(todoist_project) # TODO: rename?
         todoist_project_id_to_github_project[todoist_project_id] = github_repo.create_project(uncommited_github_project)
@@ -105,25 +76,8 @@ module ImportFromTodoist
 
       # Update Milestone if necessary
       changes_needed = diff_hashes(desired_milestone.mutable_value_hash, existing_milestone.mutable_value_hash)
+      changes_needed[:due_on] = changes_needed[:due_on].isoformat if changes_needed[:due_on]
       todoist_task_id_to_github_milestone[todoist_task.id] = github_repo.update_milestone(existing_milestone, changes_needed)
-    end
-
-    def label_helper(existing_label, todoist_label)
-      existing_label ||= github_repo.label(todoist_label.name)
-      unless existing_label
-        uncommited_github_label = ImportFromTodoist::Github::Label.from_todoist_label(todoist_label) # TODO: rename?
-        existing_label = github_repo.create_label(uncommited_github_label)
-      end
-
-      # Update Label if necessary
-      desired_label = ImportFromTodoist::Github::Label.from_todoist_label(todoist_label) # TODO: Collapse Create + Update into UPSERT?
-      changes_needed = diff_hashes(desired_label.mutable_value_hash, existing_label.mutable_value_hash)
-      github_repo.update_label(existing_label, changes_needed)
-    end
-
-    def priority(priority)
-      desired_label = ImportFromTodoist::Todoist::Label.from_priority(priority)
-      todoist_priority_to_github_label[priority] = label_helper(todoist_priority_to_github_label[priority], desired_label)
     end
 
     def label(todoist_label)
@@ -151,26 +105,6 @@ module ImportFromTodoist
       # Update issue if necessary
       changes_needed = diff_hashes(desired_issue.mutable_value_hash, existing_issue.mutable_value_hash)
       todoist_task_id_to_github_issue[todoist_task.id] = github_repo.update_issue(existing_issue, changes_needed)
-    end
-
-    def fetch_project_cards(target_project)
-      unless cards_by_project_id_and_target_id.key? target_project.id
-        cards_by_project_id_and_target_id[target_project.id] = {}
-        project_columns = PROJECT_COLUMNS.map { |column_name| project_column(target_project, ImportFromTodoist::Github::ProjectColumn.from_name(column_name)) }
-        project_columns.each do |column|
-          puts "Fetching from column '#{column.name}' of project '#{target_project.name}'"
-          cards = github_repo.project_cards(column)
-          cards.each do |card|
-            if card.note
-              todist_id = get_todist_id(card.note)
-              cards_by_project_id_and_target_id[target_project.id][todist_id] = card if todist_id # TODO: Only cache the ids here. repo should cache the actual objects
-            else
-              cards_by_project_id_and_target_id[target_project.id][card.content_id] = card
-            end
-          end
-        end
-      end
-      cards_by_project_id_and_target_id[target_project.id]
     end
 
     def project_card(target_project, issue)
@@ -231,5 +165,74 @@ module ImportFromTodoist
     attr_accessor :todoist_project_id_to_github_project
     attr_accessor :todoist_task_id_to_github_issue
     attr_accessor :todoist_task_id_to_github_milestone
+
+    def diff_hashes(hash1, hash2)
+      # Something like `{ a: 1 }.to_a & { a: 1, b: 2 }.to_a` or set difference, left_align
+      # TODO: There is probably a better way to do this.
+      differences = {}
+      hash1.each do |key, value|
+        differences[key] = value if hash2[key] != value
+      end
+
+      differences
+    end
+
+    def get_todist_id(description)
+      return description if description.nil?
+      match = description.match(/TODOIST_ID: (\d+)/)
+      todist_id = match.captures.first.to_i if match
+    end
+
+    def generate_github_description(todoist_id, description = '') # TODO: Remove
+      # Generates a description that includes a GitHub Markdown comment (ie.
+      # hack, see https://stackoverflow.com/a/20885980/6460914). That way, the
+      # Todoist id can be embedded for easy cross-referencing in future runs.
+      ''"#{description}
+
+[//]: # (Warning: DO NOT DELETE!)
+[//]: # (The below comment is important for making Todoist imports work. For more details, see TODO: Add URL)
+[//]: # (TODOIST_ID: #{todoist_id})"''
+    end
+
+    def label_helper(existing_label, todoist_label)
+      existing_label ||= github_repo.label(todoist_label.name)
+      unless existing_label
+        uncommited_github_label = ImportFromTodoist::Github::Label.from_todoist_label(todoist_label) # TODO: rename?
+        existing_label = github_repo.create_label(uncommited_github_label)
+      end
+
+      # Update Label if necessary
+      desired_label = ImportFromTodoist::Github::Label.from_todoist_label(todoist_label) # TODO: Collapse Create + Update into UPSERT?
+      changes_needed = diff_hashes(desired_label.mutable_value_hash, existing_label.mutable_value_hash)
+      github_repo.update_label(existing_label, changes_needed)
+    end
+
+    def priority(priority)
+      desired_label = ImportFromTodoist::Todoist::Label.from_priority(priority)
+      todoist_priority_to_github_label[priority] = label_helper(todoist_priority_to_github_label[priority], desired_label)
+    end
+
+    def fetch_project_cards(target_project)
+      unless cards_by_project_id_and_target_id.key? target_project.id
+        cards_by_project_id_and_target_id[target_project.id] = {}
+        project_columns = PROJECT_COLUMNS.map { |column_name| project_column(target_project, ImportFromTodoist::Github::ProjectColumn.from_name(column_name)) }
+        project_columns.each do |column|
+          puts "Fetching from column '#{column.name}' of project '#{target_project.name}'"
+          cards = github_repo.project_cards(column)
+          cards.each do |card|
+            if card.note
+              todist_id = get_todist_id(card.note)
+              cards_by_project_id_and_target_id[target_project.id][todist_id] = card if todist_id # TODO: Only cache the ids here. repo should cache the actual objects
+            else
+              cards_by_project_id_and_target_id[target_project.id][card.content_id] = card
+            end
+          end
+        end
+      end
+      cards_by_project_id_and_target_id[target_project.id]
+    end
+
+
+
   end
 end
