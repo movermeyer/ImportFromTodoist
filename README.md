@@ -1,5 +1,30 @@
 # `import_from_todoist`
 
+<!-- Generated with "Markdown T​O​C" extension for Visual Studio Code -->
+<!-- TOC -->
+
+- [`import_from_todoist`](#import_from_todoist)
+    - [Introduction](#introduction)
+    - [WARNING: Unmaintained Repo!](#warning-unmaintained-repo)
+    - [Quick Start](#quick-start)
+        - [Pre-requisites](#pre-requisites)
+        - [Usage](#usage)
+            - [Example](#example)
+            - [Caching](#caching)
+    - [Data Model Overview](#data-model-overview)
+            - [Top Level Objects](#top-level-objects)
+            - [Tasks](#tasks)
+            - [Projects](#projects)
+    - [Nice Features](#nice-features)
+    - [Not Implemented](#not-implemented)
+        - [Functionality](#functionality)
+        - [Other Aspects](#other-aspects)
+    - [Advanced Usage](#advanced-usage)
+    - [Contributing](#contributing)
+        - [License](#license)
+
+<!-- /TOC -->
+
 ## Introduction
 
 This project allows you to import tasks from [Todoist](https://todoist.com/) into [GitHub Issues](https://guides.github.com/features/issues/).
@@ -40,8 +65,8 @@ Consider this repo to be unmaintained, beta quality code.
 1. Create a file called `.todoist_api_token` and put your [Todoist Personal API Token](https://todoist.com/Users/viewPrefs?page=integrations) into it.
    * Example: `0123456789abcdef0123456789abcdef01234567`
 1. [Create a new GitHub Personal Access Token](https://github.com/settings/tokens/new)
-   * It needs to have the `public_repo` permission to be able to create Issues on public repos
-   * TODO: What about private repos?
+   * To import into **private** repos: The token needs to have the `repo` permission
+   * To import into **public** repos: The token only needs to have the `public_repo` permission
    * **Note:** Make sure to copy the generated token when it is shown to you. Otherwise, you'll have to delete the token and try again.
 1. Create a file called `.github_auth_token` and put your [GitHub Personal Access Token](https://github.com/settings/tokens) into it.
    * Example: `058b8f7731bec63e2c68424e1f954c709615b981`
@@ -75,7 +100,7 @@ To clear this cache, either delete the `./.todoist_cache` folder, or run `cli.rb
 
 `import_from_todoist` imports Todoist objects into GitHub.
 
-Here is the high-level description of the conversion. For a detailed description of the mapping, as well as explanations of the reasoning behind it, see [TODO: Data Mapping page]. 
+Here is the high-level description of the conversion. For a detailed description of the mapping, as well as explanations of the reasoning behind it, see [Data Mapping](docs/data_mapping.md)
 
 #### Top Level Objects
 
@@ -122,20 +147,20 @@ Here is the high-level description of the conversion. For a detailed description
 Due to the time constraints of the project, a number of features were not implemented:
 
 ### Functionality
-* Assignment of Tasks/Issues to collaborators
-* Attachments on Comments
-* Reactions on Comments
+* Assignment of Tasks/Issues to collaborators (See [#9](https://github.com/movermeyer/ImportFromTodoist/issues/9))
+* Attachments on Comments (See [#4](https://github.com/movermeyer/ImportFromTodoist/issues/4))
+* Reactions on Comments (See [#5](https://github.com/movermeyer/ImportFromTodoist/issues/5))
+* Issue ordering (within Projects) (See [#14](https://github.com/movermeyer/ImportFromTodoist/issues/14))
+* Comment ordering (in Projects and Issues) (See [#3](https://github.com/movermeyer/ImportFromTodoist/issues/3))
+* Deletion synchronization (See [#8](https://github.com/movermeyer/ImportFromTodoist/issues/8))
 * Recurring Tasks
 * Task Reminders
-* Issue ordering (in Projects and Milestones)
-* Comment ordering (in Projects and Issues)
-* [Deletion synchronization](TODO: Make link to more discussion)
 
 ### Other Aspects
 
-* [Rate Limiting](TODO: Make link to more discussion) 
-* [Infinite scaling](TODO: Make link to more discussion)
-* Internationalization (i18n)
+* Rate Limiting (See [#15](https://github.com/movermeyer/ImportFromTodoist/issues/15))
+* Scaling to arbirarily large imports (See [#16](https://github.com/movermeyer/ImportFromTodoist/issues/16))
+* Internationalization (i18n) (See [#18](https://github.com/movermeyer/ImportFromTodoist/issues/18))
 * Project Auto-Kanban
 
 ## Advanced Usage
@@ -144,10 +169,13 @@ For a more in-depth discussion of each feature, see [TODO: Link to more discussi
 
 ## Contributing
 
-As mentioned in [TODO: Link], this project should be considered unmaintained.
-However, contributions can still be made, and are still welcome  :thumbsup: :smile: :thumbsup:
+As [mentioned above](#warning-unmaintained-repo), this project should be considered unmaintained.
+However, contributions can still be made, and are still welcome.  :thumbsup: :smile: :thumbsup:
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for discussions of how to contribute.
+
+I will try my best to find the time to review and merge changes, but do not expect any active development outside of that.
+
 
 ### License
 Feel free to take a look at, or play around with, the code (it's [ :sparkles: GPL licensed :sparkles:](LICENSE)).
