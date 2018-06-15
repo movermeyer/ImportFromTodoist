@@ -63,13 +63,15 @@ Consider this repo to be unmaintained, beta quality code.
     bundler
     ```
 1. Create a file called `.todoist_api_token` and put your [Todoist Personal API Token](https://todoist.com/Users/viewPrefs?page=integrations) into it.
-   * Example: `0123456789abcdef0123456789abcdef01234567`
+    * Example: `0123456789abcdef0123456789abcdef01234567`
 1. [Create a new GitHub Personal Access Token](https://github.com/settings/tokens/new)
-   * To import into **private** repos: The token needs to have the `repo` permission
-   * To import into **public** repos: The token only needs to have the `public_repo` permission
-   * **Note:** Make sure to copy the generated token when it is shown to you. Otherwise, you'll have to delete the token and try again.
+    * To import into **private** repos: The token needs to have the `repo` permission
+    * To import into **public** repos: The token only needs to have the `public_repo` permission
+    * **Note:** Make sure to copy the generated token when it is shown to you. Otherwise, you'll have to delete the token and try again.
 1. Create a file called `.github_auth_token` and put your [GitHub Personal Access Token](https://github.com/settings/tokens) into it.
-   * Example: `058b8f7731bec63e2c68424e1f954c709615b981`
+    * Example: `058b8f7731bec63e2c68424e1f954c709615b981`
+1. Create a new repo on GitHub to import into.
+    * **Do not re-use an existing repo** unless you are very sure that is what you want.  
 
 ### Usage
 
@@ -88,8 +90,13 @@ Usage: ./cli.rb [options]
 #### Example
 
 ```
-ruby .\cli.rb --projects 'GitHub Test 1,GitHub Test 2,GitHub Test 3' --repo 'movermeyer/TestRepo'
+ruby .\cli.rb --projects 'Goals,Calendar,Activities' --repo 'movermeyer/TestRepo'
 ```
+
+This will sync the contents of the "Goals", "Calendar", "Activities" projects from Todoist into the `movermeyer/TestRepo` GitHub Repo (assuming they exist).
+Running it multiple times will only sync any changes made to the projects since the last execution.
+
+**Note:** Access to the Todoist API is entirely **read-only**. This means that `import_from_todoist` will never make changes to your Todoist data. 
 
 #### Caching
 
