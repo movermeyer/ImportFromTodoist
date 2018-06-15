@@ -143,21 +143,9 @@ module ImportFromTodoist
 
       attr_reader :api_token
 
-      def sync_api_connection
-        # @sync_connection ||= Faraday.new(url: TODOIST_SYNC_API_URL)
-
-        # TODO: Remove. It was for Fiddler debugging
-        @sync_connection ||= Faraday.new(url: TODOIST_SYNC_API_URL, proxy: 'http://127.0.0.1:8888') do |faraday|
-          faraday.adapter :net_http do |http| # yields Net::HTTP
-            http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-          end
-        end
-      end
-
-      def rest_api_connection
-        # @rest_connection ||= Faraday.new(url: TODOIST_REST_API_URL)
-
-        @rest_connection ||= Faraday.new(url: TODOIST_REST_API_URL, proxy: 'http://127.0.0.1:8888') do |faraday|
+      def fiddler_connection(url, proxy = 'http://127.0.0.1:8888')
+        # TODO: Remove. It allows for [Fiddler](https://www.telerik.com/fiddler) debugging
+        Faraday.new(url: url, proxy: proxy) do |faraday|
           faraday.adapter :net_http do |http| # yields Net::HTTP
             http.verify_mode = OpenSSL::SSL::VERIFY_NONE
           end
@@ -165,11 +153,28 @@ module ImportFromTodoist
         end
       end
 
+      def normal_connection(url)
+        Faraday.new(url: url) do |faraday|
+          faraday.adapter :net_http
+          faraday.headers['Authorization'] = "Bearer #{api_token}"
+        end
+      end
+
+      def sync_api_connection
+        @sync_connection ||= normal_connection(TODOIST_SYNC_API_URL)
+        # @sync_connection ||= fiddler_connection(TODOIST_SYNC_API_URL)
+      end
+
+      def rest_api_connection
+        @rest_connection ||= normal_connection(TODOIST_REST_API_URL)
+        # @rest_connection ||= fiddler_connection(TODOIST_REST_API_URL)
+      end
+
       def get_from_todoist(resource_type)
         cache_file = File.join(@cache_dir, "#{resource_type}.json")
 
         if File.exist? cache_file
-          puts "Fetching Todoist #{resource_type} from file cache"
+          puts "Fetching Todoist '#{resource_type}' from file cache"
           open(cache_file, 'r') do |fin|
             JSON.parse(fin.read)
           end

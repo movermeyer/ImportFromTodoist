@@ -245,19 +245,20 @@ module ImportFromTodoist
       attr_reader :api_token
 
       def connection
-        # TODO: Remove. It was for Fiddler debugging
-        @connection ||= Faraday.new(url: GITHUB_API_URL, proxy: 'http://127.0.0.1:8888') do |faraday|
-          faraday.adapter :net_http do |http| # yields Net::HTTP
-            http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-          end
-          faraday.headers['Authorization'] = "token #{api_token}"
-          faraday.headers.merge!(GITHUB_API_VERSION)
-        end
-
-        # @connection ||= Faraday.new(url: GITHUB_API_URL) do |faraday|
+        # TODO: Remove. It allows for [Fiddler](https://www.telerik.com/fiddler) debugging
+        # @connection ||= Faraday.new(url: GITHUB_API_URL, proxy: 'http://127.0.0.1:8888') do |faraday|
+        #   faraday.adapter :net_http do |http| # yields Net::HTTP
+        #     http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+        #   end
         #   faraday.headers['Authorization'] = "token #{api_token}"
         #   faraday.headers.merge!(GITHUB_API_VERSION)
         # end
+
+        @connection ||= Faraday.new(url: GITHUB_API_URL) do |faraday|
+          faraday.adapter :net_http
+          faraday.headers['Authorization'] = "token #{api_token}"
+          faraday.headers.merge!(GITHUB_API_VERSION)
+        end
       end
     end
   end
