@@ -6,7 +6,7 @@
     - [Tasks](#tasks)
         - [Task Creation](#task-creation)
         - [Issue and Milestone State](#issue-and-milestone-state)
-    - [Changing Project of Task](#changing-project-of-task)
+        - [Changing Project of Task](#changing-project-of-task)
         - [Other relationships](#other-relationships)
     - [Projects](#projects)
         - [Project Creation](#project-creation)
@@ -14,10 +14,9 @@
         - ["To Do" Column](#to-do-column)
         - ["Comments" Column](#comments-column)
         - [Other relationships](#other-relationships-1)
-- [Labels](#labels)
-    - [Non-uniqueness](#non-uniqueness)
-- [Comments (on Tasks)](#comments-on-tasks)
-- [Comments (on Projects)](#comments-on-projects)
+    - [Labels](#labels)
+        - [Non-uniqueness](#non-uniqueness)
+    - [Comments](#comments)
 
 <!-- /TOC -->
 
@@ -74,8 +73,7 @@ The `state` of a GitHub Issue and Milestone depends on the state of the correspo
 | Archived                | `closed`                           | `closed`                             | [Not implemented yet](https://github.com/movermeyer/ImportFromTodoist/issues/8) |
 | Deleted                 | `closed`                           | `closed`                             | [Not implemented yet](https://github.com/movermeyer/ImportFromTodoist/issues/8) |
 
-
-## Changing Project of Task
+### Changing Project of Task
 
 When you change the project of a Task:
 
@@ -130,7 +128,7 @@ Changes made to these attributes in Todoist are replicated within the GitHub Pro
 | ------------------------- | -------------------------------------- |
 | Project Name (`name`)     | Project Name (`name`)                  |
 
-# Labels
+## Labels
 
 Whenever a Task is processed that has an associated Label, a corresponding Label is created in GitHub Issues\
 Changes made to the Label's attributes in Todoist are replicated to the corresponding GitHub Label.
@@ -140,14 +138,23 @@ Changes made to the Label's attributes in Todoist are replicated to the correspo
 | Label Name (`name`)       | Label Name (`name`)                    |
 | Label Color (`color`)     | Label Name (`color`)                   |
 
-## Non-uniqueness
+### Non-uniqueness
 
-Because there is no attribute to store the [ID Mapping Comment](#associating-objects-across-changes), if you change the name of a Label in Todoist, the existing Label in GitHub Issues will not be modified. Instead, a new Label with the new name will be created.
+Because there is no attribute to store the [ID Mapping Comment](#associating-objects-across-changes) in, if you change the name of a Label in Todoist, the existing Label in GitHub Issues will not be modified. Instead, a new Label with the new name will be created.
 
-To stop a possible proliferation of unused Labels in GitHub Issues, `import_from_todoist` deletes any Label in GitHub Issues that is no longer referenced from any Issue ( [Not implemented yet](https://github.com/movermeyer/ImportFromTodoist/issues/8)). 
+To prevent a possible proliferation of unused Labels in GitHub Issues, `import_from_todoist` deletes any Label in GitHub Issues that is no longer referenced from any Issue ( [Not implemented yet](https://github.com/movermeyer/ImportFromTodoist/issues/8)). 
 
 
-# Comments (on Tasks)
+## Comments
 
-# Comments (on Projects)
+When you create a comment on a **task** in Todoist:
+* A corresponding comment is created on the GitHub Issue associated with the task. 
 
+When you create a comment on a **project** in Todoist:
+* A "note" Project Card is added to the ["Comments" column](#comments-column) is of the GitHub Project associated with the Todoist Project. 
+
+Changes made to the Label's attributes in Todoist are replicated to the corresponding GitHub Label.
+
+| [Todoist Comment attribute](https://developer.todoist.com/sync/v7/#notes) | Corresponding [GitHub Issue Comment attribute](https://developer.github.com/v3/issues/comments/#edit-a-comment) | Corresponding [GitHub Project Card attribute](https://developer.github.com/v3/projects/cards/#update-a-project-card) |
+| ------------------------- | -------------------------------------- | -------------------------------------- |
+| Comment Content (`content`) | Comment Content (`body`)  | Card Content (`note`)                  |
