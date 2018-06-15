@@ -12,7 +12,7 @@ module ImportFromTodoist
 ---
 
 **Originally written**#{todoist_collaborator ? " **by** `#{todoist_collaborator.full_name}`" : ''} at `#{todoist_comment.post_time}`
-**Imported from [Todoist](TODO: Url)**
+**Imported from [Todoist](https://github.com/movermeyer/ImportFromTodoist)**
 
 [//]: # (Warning: DO NOT DELETE!)
 [//]: # (The below comment is important for making Todoist imports work. For more details, see TODO: Add URL)
