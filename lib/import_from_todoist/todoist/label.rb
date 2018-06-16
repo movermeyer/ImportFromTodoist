@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ImportFromTodoist
   module Todoist
     class Label < Struct.new(:id, :name, :color)
@@ -33,10 +35,10 @@ module ImportFromTodoist
       end
 
       def self.from_priority(priority)
+        index = [[1, priority].max, PRIORITY_COLORS.length].min - 1
         new(nil,
             "Priority #{priority}",
-            PRIORITY_COLORS.fetch(priority - 1,
-                                  priority > PRIORITY_COLORS.length ? PRIORITY_COLORS[-1] : PRIORITY_COLORS[0]))
+            PRIORITY_COLORS[index])
       end
     end
   end

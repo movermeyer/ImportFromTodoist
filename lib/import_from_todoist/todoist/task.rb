@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'date'
 require 'time'
 
@@ -20,7 +22,7 @@ module ImportFromTodoist
         new(hash.fetch('id'),
             hash.fetch('content'),
             hash.fetch('project_id'),
-            (hash.fetch('checked', 0) == 1 || !completed_date.nil?), # TODO: Remove nil check?
+            (hash.fetch('checked', 0) == 1 || !completed_date.nil?),
             due_on ? DateTime.iso8601(due_on) : nil,
             hash.fetch('labels', []),
             priority ? (MAX_PRIORITY - priority + 1) : nil,

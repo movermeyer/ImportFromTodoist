@@ -31,9 +31,9 @@ module ImportFromTodoist
 
     def project(todoist_project_id)
       todoist_project = todoist_api.project(todoist_project_id)
+      desired_github_project = ImportFromTodoist::Github::Project.from_todoist_project(todoist_project)
       unless todoist_project_id_to_github_project.key?(todoist_project_id)
-        uncommited_github_project = ImportFromTodoist::Github::Project.from_todoist_project(todoist_project)
-        todoist_project_id_to_github_project[todoist_project_id] = github_api.create_project(uncommited_github_project)
+        todoist_project_id_to_github_project[todoist_project_id] = github_api.create_project(desired_github_project)
       end
 
       existing_project = todoist_project_id_to_github_project[todoist_project_id]
@@ -45,8 +45,7 @@ module ImportFromTodoist
       end
 
       # Update Project if necessary
-      desired_project = ImportFromTodoist::Github::Project.from_todoist_project(todoist_project)
-      changes_needed = diff_hashes(desired_project.mutable_value_hash, existing_project.mutable_value_hash)
+      changes_needed = diff_hashes(desired_github_project.mutable_value_hash, existing_project.mutable_value_hash)
       todoist_project_id_to_github_project[todoist_project_id] = github_api.update_project(existing_project, changes_needed)
     end
 
@@ -60,7 +59,7 @@ module ImportFromTodoist
 
       # Update Milestone if necessary
       changes_needed = diff_hashes(desired_milestone.mutable_value_hash, existing_milestone.mutable_value_hash)
-      changes_needed[:due_on] = changes_needed[:due_on].isoformat if changes_needed[:due_on]
+      changes_needed[:due_on] = changes_needed[:due_on].iso8601 if changes_needed[:due_on]
       todoist_task_id_to_github_milestone[todoist_task.id] = github_api.update_milestone(existing_milestone, changes_needed)
     end
 
@@ -189,13 +188,12 @@ module ImportFromTodoist
 
     def label_helper(existing_label, todoist_label)
       existing_label ||= github_api.label(todoist_label.name)
+      desired_label = ImportFromTodoist::Github::Label.from_todoist_label(todoist_label)
       unless existing_label
-        uncommited_github_label = ImportFromTodoist::Github::Label.from_todoist_label(todoist_label)
-        existing_label = github_api.create_label(uncommited_github_label)
+        existing_label = github_api.create_label(desired_label)
       end
 
       # Update Label if necessary
-      desired_label = ImportFromTodoist::Github::Label.from_todoist_label(todoist_label) # TODO: Collapse Create + Update into UPSERT?
       changes_needed = diff_hashes(desired_label.mutable_value_hash, existing_label.mutable_value_hash)
       github_api.update_label(existing_label, changes_needed)
     end
