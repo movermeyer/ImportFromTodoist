@@ -25,6 +25,7 @@ PLATFORMS
 DEPENDENCIES
   activesupport
   faraday
+  minitest
   tzinfo-data
 
 BUNDLED WITH
