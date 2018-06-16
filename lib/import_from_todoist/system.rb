@@ -1,6 +1,6 @@
 module ImportFromTodoist
   class System
-    PROJECT_COLUMNS = Set['Comments', 'To Do', 'Completed']
+    PROJECT_COLUMNS = ['To Do', 'Comments']
 
     def initialize(todoist_api_token, github_api_token, github_repo_name)
       @todoist_api = ImportFromTodoist::Todoist::Api.new(todoist_api_token)
