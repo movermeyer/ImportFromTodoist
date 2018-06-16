@@ -4,7 +4,8 @@ module ImportFromTodoist
   class Importer
     def initialize(todoist_api_token, github_api_token, github_repo_name, no_cache)
       @todoist_api = ImportFromTodoist::Todoist::Api.new(todoist_api_token, no_cache: no_cache)
-      @system = ImportFromTodoist::System.new(todoist_api_token, github_api_token, github_repo_name)
+      github_repo_api = ImportFromTodoist::Github::Repo.new(github_repo_name, github_api_token)
+      @system = ImportFromTodoist::System.new(@todoist_api, github_repo_api)
     end
 
     def sync(project_names_to_import)
@@ -22,7 +23,7 @@ module ImportFromTodoist
         issue = system.issue(task.id)
 
         # Associate an Issue with a Project by creating a project card for it
-        _project_card = system.project_card(system.project(task.project_id), issue)
+        system.sync_project_card(system.project(task.project_id), issue)
       end
 
       puts 'Syncing Todoist comments.'
