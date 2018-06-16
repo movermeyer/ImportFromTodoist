@@ -72,7 +72,7 @@ module ImportFromTodoist
       todoist_task = todoist_api.task(todoist_task_id)
       desired_issue_hash = {
         title: todoist_task.content,
-        body: generate_github_description(todoist_task.id),
+        body: ImportFromTodoist::Github::DescriptionHelper.generate_github_description(todoist_task.id),
         labels: todoist_task.labels.map { |label_id| label(todoist_api.label(label_id)).name },
         state: todoist_task.completed ? 'closed' : 'open'
       }
@@ -153,25 +153,25 @@ module ImportFromTodoist
     def prepopulate_caches
       # Fetch existing issues
       github_api.issues.each do |issue|
-        todist_id = get_todist_id(issue.body)
+        todist_id = ImportFromTodoist::Github::DescriptionHelper.get_todist_id(issue.body)
         todoist_task_id_to_github_issue[todist_id] = issue if todist_id # TODO: Only cache the ids here. repo should cache the actual objects
       end
 
       # Fetch existing projects
       github_api.projects.each do |project|
-        todist_id = get_todist_id(project.body)
+        todist_id = ImportFromTodoist::Github::DescriptionHelper.get_todist_id(project.body)
         todoist_project_id_to_github_project[todist_id] = project if todist_id # TODO: Only cache the ids here. repo should cache the actual objects
       end
 
       # Fetch existing milestones
       github_api.milestones.each do |milestone|
-        todist_id = get_todist_id(milestone.description)
+        todist_id = ImportFromTodoist::Github::DescriptionHelper.get_todist_id(milestone.description)
         todoist_task_id_to_github_milestone[todist_id] = milestone if todist_id
       end
 
       # Fetch existing comments
       github_api.comments.each do |comment|
-        todist_id = get_todist_id(comment.body)
+        todist_id = ImportFromTodoist::Github::DescriptionHelper.get_todist_id(comment.body)
         todoist_comment_id_to_github_comment[todist_id] = comment if todist_id # TODO: Only cache the ids here. repo should cache the actual objects
       end
     end
@@ -185,23 +185,6 @@ module ImportFromTodoist
       end
 
       differences
-    end
-
-    def get_todist_id(description)
-      return description if description.nil?
-      match = description.match(/TODOIST_ID: (\d+)/)
-      todist_id = match.captures.first.to_i if match
-    end
-
-    def generate_github_description(todoist_id, description = '') # TODO: Remove
-      # Generates a description that includes a GitHub Markdown comment (ie.
-      # hack, see https://stackoverflow.com/a/20885980/6460914). That way, the
-      # Todoist id can be embedded for easy cross-referencing in future runs.
-      ''"#{description}
-
-[//]: # (Warning: DO NOT DELETE!)
-[//]: # (The below comment is important for making Todoist imports work. For more details, see TODO: Add URL)
-[//]: # (TODOIST_ID: #{todoist_id})"''
     end
 
     def label_helper(existing_label, todoist_label)
@@ -231,7 +214,7 @@ module ImportFromTodoist
           cards = github_api.project_cards(column)
           cards.each do |card|
             if card.note
-              todist_id = get_todist_id(card.note)
+              todist_id = ImportFromTodoist::Github::DescriptionHelper.get_todist_id(card.note)
               cards_by_project_id_and_target_id[target_project.id][todist_id] = card if todist_id # TODO: Only cache the ids here. repo should cache the actual objects
             else
               cards_by_project_id_and_target_id[target_project.id][card.content_id] = card

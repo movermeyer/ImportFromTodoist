@@ -1,18 +1,9 @@
+# frozen_string_literal: true
+
 module ImportFromTodoist
   module Github
     class Project < Struct.new(:id, :name, :body, :state)
       private_class_method :new
-
-      def self.generate_github_description(todoist_id, description = '') # TODO: Remove
-        # Generates a description that includes a GitHub Markdown comment (ie.
-        # hack, see https://stackoverflow.com/a/20885980/6460914). That way, the
-        # Todoist id can be embedded for easy cross-referencing in future runs.
-        ''"#{description}
-
-[//]: # (Warning: DO NOT DELETE!)
-[//]: # (The below comment is important for making Todoist imports work. For more details, see https://github.com/movermeyer/ImportFromTodoist/blob/master/docs/data_mapping.md#associating-objects-across-changes)
-[//]: # (TODOIST_ID: #{todoist_id})"''
-      end
 
       def self.from_github(hash)
         new(hash.fetch('id'), hash.fetch('name'), hash.fetch('body'), hash.fetch('state'))
@@ -20,7 +11,7 @@ module ImportFromTodoist
 
       def self.from_todoist_project(project)
         state = project.is_deleted == 1 || project.is_archived == 1 ? 'closed' : 'open'
-        new(nil, project.name, generate_github_description(project.id), state)
+        new(nil, project.name, ImportFromTodoist::Github::DescriptionHelper.generate_github_description(project.id), state)
       end
 
       def creation_hash

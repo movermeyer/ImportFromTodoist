@@ -179,7 +179,7 @@ module ImportFromTodoist
 
       def update_comment(comment, changes_needed)
         return comment if changes_needed.empty?
-        puts "Updating comment '#{comment.id}'"
+        puts "Updating comment '#{comment.id}': #{changes_needed}"
         response = connection.patch do |req|
           req.url "/repos/#{name}/issues/comments/#{url_encode(comment.id)}"
           req.body = JSON.dump(changes_needed)
@@ -224,7 +224,7 @@ module ImportFromTodoist
 
       def update_project_card(project_card, changes_needed)
         return project_card if changes_needed.empty?
-        puts "Updating project card '#{project_card.id}'"
+        puts "Updating project card '#{project_card.id}': #{changes_needed}"
         response = connection.patch do |req|
           req.url "/projects/columns/cards/#{url_encode(project_card.id)}"
           req.body = JSON.dump(changes_needed)

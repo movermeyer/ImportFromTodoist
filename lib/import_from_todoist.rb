@@ -7,6 +7,7 @@ require 'bundler/setup'
 require 'faraday'
 
 require_relative 'import_from_todoist/github/comment'
+require_relative 'import_from_todoist/github/description_helper'
 require_relative 'import_from_todoist/github/issue'
 require_relative 'import_from_todoist/github/label'
 require_relative 'import_from_todoist/github/milestone'

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'active_support/time'
 require 'date'
 
@@ -5,17 +7,6 @@ module ImportFromTodoist
   module Github
     class Milestone < Struct.new(:id, :number, :title, :description, :state, :due_on)
       private_class_method :new
-
-      def self.generate_github_description(todoist_id, description = '') # TODO: Remove
-        # Generates a description that includes a GitHub Markdown comment (ie.
-        # hack, see https://stackoverflow.com/a/20885980/6460914). That way, the
-        # Todoist id can be embedded for easy cross-referencing in future runs.
-        ''"#{description}
-
-[//]: # (Warning: DO NOT DELETE!)
-[//]: # (The below comment is important for making Todoist imports work. For more details, see https://github.com/movermeyer/ImportFromTodoist/blob/master/docs/data_mapping.md#associating-objects-across-changes)
-[//]: # (TODOIST_ID: #{todoist_id})"''
-      end
 
       def self.from_github(hash)
         new(hash.fetch('id'), hash.fetch('number'), hash.fetch('title'), hash.fetch('description'), hash.fetch('state'), DateTime.iso8601(hash.fetch('due_on')))
@@ -43,7 +34,7 @@ module ImportFromTodoist
         # If GitHub fixes this, or gives more information about what is happening, a better solution could be developed.
         due_on = task.due_on.in_time_zone('America/Los_Angeles').beginning_of_day.in_time_zone('UTC')
 
-        new(nil, nil, task.content, generate_github_description(task.id), task.completed ? 'closed' : 'open', due_on)
+        new(nil, nil, task.content, ImportFromTodoist::Github::DescriptionHelper.generate_github_description(task.id), task.completed ? 'closed' : 'open', due_on)
       end
 
       def creation_hash
