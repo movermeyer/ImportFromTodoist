@@ -354,15 +354,20 @@ OR
 
 Since [I thought that] the GitHub API didn't offer much in way of idempotent operations, I focused on the former strategy. I later learned that many of the operations offered by the GitHub API could be safely used (if you caught the errors returned). However, by that point, I had a system that worked to provide the needed idempotency.
 
-For details, see ()
-
-
-
+For details, see [Associating objects across changes](https://github.com/movermeyer/ImportFromTodoist/blob/master/docs/data_mapping.md#associating-objects-across-changes).
 
 # Scaling
 
+`import_from_todoist` should have been designed to be able to scale to arbitrary numbers of Todoist projects and arbitrarily large numbers of GitHub Issues, with at worst linear slowdown.
+
+Scaling is an area that wasn't implemented well in `import_from_todoist`. There are places within the codebase with unbounded caches.
+ Further, the Todoist API
+
 ## Paging
 ## Parallelism
+
+Eventually even linear slowdown gets too slow. So 
+
 ## Rate Limiting
 
 # Security
