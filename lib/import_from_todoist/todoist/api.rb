@@ -76,13 +76,12 @@ module ImportFromTodoist
 
       def tasks(project_ids = [])
         # TODO: Figure out a way to filter sync requests by project_id server side.
-        results = get_from_todoist('items')
+        results = get_from_todoist('items').select { |item| project_ids.include? item.fetch('project_id') }
         results += completed_tasks(project_ids)
 
         # Getting the due date from the SYNC API (v7) is not easy. So we instead get it from the REST v8 API.
         # We can't just use the REST v8 API, since it doesn't expose all of the fields we need.
-        # TODO: Consider not pulling down every task.
-        # TODO: Consider removing caching.
+        # TODO: Move caching to caching layer. https://github.com/movermeyer/ImportFromTodoist/issues/20
         cache_file = File.join(@cache_dir, 'tasks.json')
 
         if File.exist? cache_file

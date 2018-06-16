@@ -19,7 +19,6 @@ module ImportFromTodoist
 
       puts 'Syncing Todoist tasks.'
       todoist_api.tasks(projects_ids_to_process).each do |task|
-        next unless projects_ids_to_process.include?(task.project_id)
         issue = system.issue(task.id)
 
         # Associate an Issue with a Project by creating a project card for it
