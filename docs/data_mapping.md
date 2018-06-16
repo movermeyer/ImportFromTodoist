@@ -30,9 +30,12 @@ This document will describe the mapping that `import_from_todoist` uses when imp
 
 # Overview
 
-(TODO: A diagram of the over-all data model)
+![The high-level mapping between Todoist and GitHub concepts](img/data_mapping.png)
 
-# Associating objects across changes
+>In the top of the image, are the Todoist concepts (Tasks, Projects, Comments, Project Comments, and Labels). In the bottom half are the corresponding GitHub Issues concepts (Issues, Projects, Milestones, Comments, Labels), with lines connecting them.
+
+
+## Associating objects across changes
 
 A mechanism was needed in order to track updates to Todoist objects across multiple runs of `import_from_todoist`.
 
