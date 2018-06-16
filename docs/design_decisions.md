@@ -2,6 +2,7 @@
 <!-- TOC anchorMode:github.com -->
 
 - [Introduction](#introduction)
+- [TODO: Whine less?](#todo-whine-less)
 - [General Philosophy](#general-philosophy)
 - [Why Todoist?](#why-todoist)
 - [Functional Requirements](#functional-requirements)
@@ -23,7 +24,7 @@
         - ["Due Date View"](#due-date-view)
             - [Milestone per Due Date](#milestone-per-due-date)
             - [Milestone per Issue](#milestone-per-issue)
-            - [Problem](#problem)
+            - [Milestone Problem](#milestone-problem)
         - ["Project View"](#project-view)
             - [Projects as Projects](#projects-as-projects)
             - [Milestones as Projects](#milestones-as-projects)
@@ -55,6 +56,8 @@ Hello, I'm [Michael Overmeyer](https://movermeyer.com) (@movermeyer).
 This page will discuss some of the decisions I made during the development of `import_from_todoist`. 
 It will be written as a first-person, post-hoc narrative of the project, but you should be able to use the Table of Contents to jump to areas that are interesting to you without feeling too lost.
 
+
+# TODO: Whine less?
 When reading this, it will be important to remember two things:
 
 1. This project was written for a take-home assignment as part of the interview process for a position at GitHub.
@@ -68,6 +71,8 @@ At times I will discuss what could be done in future iterations of `import_from_
 
 
 # General Philosophy
+
+TODO: Consider removing.
 
 When developing software, there is so much more to consider than just the functional requirements.
 `import_from_todoist` was no exception. While the original [problem statement](problem_statement.md) was fairly simple and flexible, there were a lot of implicit requirements to satisfy.
@@ -83,7 +88,7 @@ Simultaneously, I would try to learn the idiomatic way to do things in Ruby, and
 Once the functionality was largely in place, I would refactor to clean up code smells.
 Then I would refactor the project to further improve usability. This would include a documentation pass to make sure that all existing functionality would be captured in the docs.
 
-As I discuss in Next Steps
+As discussed in [Next Steps](next_steps.md), there is still a lot that could be improved.
 
 # Why Todoist?
 
@@ -168,7 +173,7 @@ Todoist has a few different ways to organize and view your tasks:
 1. "Priority View": You can apply priorities (1-4, with 1 = "Very Urgent", 4 = "Normal urgency"), and then view your tasks by Priority
 1. "Due Date View": You can apply due dates to tasks, and then view your tasks sorted by due date
 
-Given my experience using Todoist, I felt that these 4 ways of organizing and viewing tasks are the core of functionality that was hoping to maintain after importing the tasks into GitHub. Of course, there is a [lot more to Todoist](data_mapping.md), but if I could accomplish that, then I felt that I would have succeeded.
+Given my experience using Todoist, I felt that these 4 ways of organizing and viewing tasks are the core of functionality of Todoist. These were what I was hoping to replicate after importing the tasks into GitHub. Of course, there is a [lot more to Todoist](data_mapping.md), but if I could accomplish that, then I felt that I would have succeeded.
 
 I confirmed this list of core functionality by [interviewing another user](https://www.interaction-design.org/literature/article/how-to-conduct-user-interviews) of Todoist about how they use the software, as well as reading [Todoist's documentation](https://todoist.com/guide/getting-started) and seeing that they also focus on this set of functionality. 
 
@@ -198,11 +203,11 @@ Most importantly, Milestones were the only concept that offered any native conce
 
 ### Projects
 
-Projects another way to organize Issues in GitHub. They were designed in the style of [Kanban boards](https://leankit.com/learn/kanban/kanban-board//), with **cards** placed within **columns**. Cards could either be references to Issues, or be simple notes.
+Projects are another way to organize Issues in GitHub. They were designed in the style of [Kanban boards](https://leankit.com/learn/kanban/kanban-board//), with **cards** placed within **columns**. Cards could either be references to Issues, or be simple notes.
 
-Projects could be configured so that as Issues were closed, the corresponding card would be automatically moved to a specified column. 
+Projects could [be configured](https://help.github.com/articles/configuring-automation-for-project-boards/) so that as Issues were closed, the corresponding card would be automatically moved to a specified column. 
 
-(TODO: Write more about how they are used)
+Projects can reference issues from multiple repositories, allowing users to track progress at a higher level than the individual repository.
 
 ### Labels
 
@@ -210,7 +215,7 @@ Projects could be configured so that as Issues were closed, the corresponding ca
 
 ## Creating the Mapping
 
-Issues were the obvious parallel to Todoist Task.
+Issues were the obvious parallel to Todoist Tasks. While I did not take this for granted, it did not take much examination of the problem to convince myself that this was a reasonable choice. From there, it was a matter of implementing the 4 views.
 
 ### "Label View"
 
@@ -220,7 +225,7 @@ Together this implemented the same functionality as Todoist's "Label View"
 
 ### "Priority View"
 
-GitHub has no native idea of "Priority". I had seen [projects use Labels](https://github.com/ansible/ansible/issues?q=label%3AP1+is%3Aclosed) with names similar to "Priority: 1" before.
+GitHub has no native idea of "Priority". I had seen [projects use Labels](https://github.com/ansible/ansible/issues?q=label%3AP1+is%3Aclosed) with names similar to "Priority 1" before.
 
 I decided to convert the Todoist priorities to GitHub Issues Labels. The existing `/issues` page of each GitHub Repo allows users to filter by Label(s). 
 Together this implemented nearly the same functionality as Todoist's "Priority View".
@@ -228,13 +233,14 @@ Together this implemented nearly the same functionality as Todoist's "Priority V
 The downsides of this method were:
 * You cannot sort Issues by Priority, like you could in Todoist.
 * Label names and Priority names could collide
-    * This seemed like a very niche problem to have. What was the user using the "Priority 1" label for that wasn't the same as the Priority use case?
+    * This seemed like a very niche problem to have. What would a user be using the "Priority 1" label for that wasn't the same as the Priority use case?
 
 ### "Due Date View"
 
 The trickiest of the views to model was the "Due Date View". This was a result of GitHub not having great native support for due dates. Issues themselves cannot be assigned due dates. This is probably a good thing as software projects can get bogged down by managing due dates without providing value. But in Todoist, due dates were first-class, and seeing which Tasks are due soon (or over-due) was an important piece of functionality.
 
 The only mechanism within GitHub Issues with a concept of due date was the Milestones mechanism.
+Further, Milestone due dates were limited to a granularity of 1 day, while Todoist had sub-day due "dates" (ex. "2018-06-10T18:00:00Z").
 
 Two ideas for how to implement the "Due Date View" came to mind:
 
@@ -248,27 +254,28 @@ The first idea was to have `import_from_todoist` create a milestone for each due
 
 Benefits with this approach:
 * At the '/milestones' endpoint, GitHub showed the total count of issues for each day, which could be useful to see upcoming busy days.
-* Milestones are sortable by due date
 
 Problems with this approach:
 * At the '/milestones' endpoint, GitHub just displays a list of dates. Users have to specifically click on each day to see the specific Issues for the day.
-(TODO: Add screenshot)
-* Ideally, which date to display as the milestone title would match the user's timezone. You could simply use the UTC date, but that is not a great user experience. You could use the timezone of the user who imported the tasks, but then other users with access to the repo would not have a good experience.
+
+![A screenshot of milestones view with one milestone per due date](img/due_dates_as_milestones.png)
+
+* Ideally, the date displayed as the milestone title would match the user's timezone. However, since the title is static, this will not always be the case. You could simply use the UTC date, but that is not a great user experience. You could use the timezone of the user who imported the tasks, but then other users with access to the repo would not have a good experience.
 
 #### Milestone per Issue
 An alternative approach is to create a milestone for every issue that has a due date, and then associate the two objects.
 
 Benefits of this approach:
-* At the '/milestones' endpoint, GitHub showed the total count of issues for each day, which could be useful to see upcoming busy days.
-* Milestones are sortable by due date
+* The individual Issue descriptions are immediately visible.
+* Milestones are sortable by due date, giving you a list of upcoming issues/tasks to complete.
 
 Problems with this approach:
-* The '/milestones' endpoint becomes cluttered with milestones. Other views could not easily make use of the milestone functionality. Practically, this meant that I would not want to use milestones to also represent Todoist Projects.
+* The '/milestones' endpoint becomes cluttered with milestones. Other views could not easily make use of the milestone functionality. Practically, this meant that I would not want to use milestones to also represent Todoist Projects. This was important when I had to decide how to implement the ["Project View"](#project-view). 
 
-#### Problem
+#### Milestone Problem
 
 Without native support for Issue due dates, any solution I developed would tie the user to the `import_from_todoist` utility.
-If the user ever decided to use GitHub Issues as their primary To-Do App, they would have to use GitHub's native functionality. 
+If the user ever decided to use GitHub Issues as their primary To-Do App, they would have to use GitHub's native functionality exclusively. 
 Without `import_from_todoist`, they would have to create the milestones manually and create any associations that they wanted. 
 
 ### "Project View"
@@ -333,7 +340,7 @@ Having decided to implement `import_from_todoist` as a utility [that uses Todois
 
 Idempotency is one of the implicit requirements of any data processing / [ETL](https://en.wikipedia.org/wiki/Extract%2C_transform%2C_load) task.
 
-Being idempotent is useful, not only for easy of development, but also recovery for recovery from potential errors/crashes, power failures, and other processing interruptions.
+Being idempotent is useful, not only for ease of development, but also for recovery from potential errors/crashes, power failures, and other processing interruptions.
 
 It was also reasonable expect that a user might want to continue using the original To-Do App, either while they transition to GitHub Issues, or simply forevermore. 
 
@@ -343,11 +350,12 @@ Idempotence of the importer implies that you either:
 
 OR
 
-* Design all your operations to themselves be idempotent. You can always redo all the operations (at the expense of runtime) and still be idempotent. 
+* Design all your operations to be idempotent. You can always redo all the operations (at the expense of runtime) and still be idempotent. 
 
-Since the GitHub API doesn't offer much in way of idempotent operations, I had to focus on the former strategy.
+Since [I thought that] the GitHub API didn't offer much in way of idempotent operations, I focused on the former strategy. I later learned that many of the operations offered by the GitHub API could be safely used (if you caught the errors returned). However, by that point, I had a system that worked to provide the needed idempotency.
 
-(TODO: More on the Markdown comment hack)
+For details, see ()
+
 
 
 

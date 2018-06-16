@@ -46,9 +46,6 @@ Consider this repo to be unmaintained, beta quality code.
 * [Ruby](https://www.ruby-lang.org/en/) (Tested with 2.4.4)
 * [Git](https://git-scm.com/) (any modern version)
 * [Bundler](https://bundler.io/)
-    ```
-    gem install bundler
-    ```
 
 1. Clone this repo using git: 
     ```
@@ -60,7 +57,7 @@ Consider this repo to be unmaintained, beta quality code.
     ```
 1. Fetch the Ruby dependencies:
     ```
-    bundle install
+    bundler install
     ```
 1. Create a file called `.todoist_api_token` and put your [Todoist Personal API Token](https://todoist.com/Users/viewPrefs?page=integrations) into it.
     * Example: `0123456789abcdef0123456789abcdef01234567`
@@ -93,7 +90,7 @@ Usage: ./cli.rb [options]
 ruby .\cli.rb --projects 'Goals,Calendar,Activities' --repo 'movermeyer/TestRepo'
 ```
 
-This will sync the contents of the "Goals", "Calendar", "Activities" projects from Todoist into the `movermeyer/TestRepo` GitHub Repo (assuming they exist).
+This will sync the contents of the "Goals", "Calendar", "Activities" projects from Todoist into the `movermeyer/TestRepo` GitHub Repo (assuming all the projects and the repo exist).
 Running it multiple times will only sync any changes made to the projects since the last execution.
 
 **Note:** Access to the Todoist API is entirely **read-only**. This means that `import_from_todoist` will never make changes to your Todoist data. 
