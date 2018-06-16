@@ -17,7 +17,7 @@
             - [Projects](#projects)
     - [Nice Features](#nice-features)
     - [Not Implemented](#not-implemented)
-        - [Functionality](#functionality)
+        - [Missing Functionality (TODO: Update TOC)](#missing-functionality-todo-update-toc)
         - [Other Aspects](#other-aspects)
     - [Advanced Usage](#advanced-usage)
     - [Contributing](#contributing)
@@ -150,15 +150,15 @@ Here is the high-level description of the conversion. For a detailed description
 
 Due to the time constraints of the project, a number of features were not implemented:
 
-### Functionality
+### Missing Functionality (TODO: Update TOC)
 * Assignment of Tasks/Issues to collaborators (See [#9](https://github.com/movermeyer/ImportFromTodoist/issues/9))
 * Attachments on Comments (See [#4](https://github.com/movermeyer/ImportFromTodoist/issues/4))
 * Reactions on Comments (See [#5](https://github.com/movermeyer/ImportFromTodoist/issues/5))
 * Issue ordering (within Projects) (See [#14](https://github.com/movermeyer/ImportFromTodoist/issues/14))
 * Comment ordering (in Projects and Issues) (See [#3](https://github.com/movermeyer/ImportFromTodoist/issues/3))
 * Deletion synchronization (See [#8](https://github.com/movermeyer/ImportFromTodoist/issues/8))
-* Recurring Tasks
-* Task Reminders
+* Recurring Tasks (No native support in GitHub Issues)
+* Task Reminders (No native support in GitHub Issues)
 
 ### Other Aspects
 
@@ -179,7 +179,6 @@ However, contributions can still be made, and are still welcome.  :thumbsup: :sm
 See [CONTRIBUTING.md](CONTRIBUTING.md) for discussions of how to contribute.
 
 I will try my best to find the time to review and merge changes, but do not expect any active development outside of that.
-
 
 ### License
 Feel free to take a look at, or play around with, the code (it's [ :sparkles: GPL licensed :sparkles:](LICENSE)).

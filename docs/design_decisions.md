@@ -34,7 +34,6 @@
 - [Scaling](#scaling)
     - [Paging](#paging)
     - [Parallelism](#parallelism)
-    - [Rate Limiting](#rate-limiting)
 - [Security](#security)
     - [Threat Model](#threat-model)
         - [Untrusted Input](#untrusted-input)
@@ -67,12 +66,10 @@ When reading this, it will be important to remember two things:
     
 Both of these aspects factor into nearly every decision made during the project.
 
-At times I will discuss what could be done in future iterations of `import_from_todoist`, since there was not enough time to do everything. A summary of these can be found in [Next Steps](next_steps.md). 
+At times I will discuss what could be done in future iterations of `import_from_todoist`, since there was not enough time to do everything. A more in-depth discussion of these can be found in [Next Steps](next_steps.md). 
 
 
 # General Philosophy
-
-TODO: Consider removing.
 
 When developing software, there is so much more to consider than just the functional requirements.
 `import_from_todoist` was no exception. While the original [problem statement](problem_statement.md) was fairly simple and flexible, there were a lot of implicit requirements to satisfy.
@@ -187,17 +184,24 @@ My target audience for `import_from_todoist` was Todoist users who are looking t
 
 ### Issues
 
-In GitHub Issues, the central concept is an **Issue**. Different software projects use them for different purposes, 
+In GitHub Issues, the central concept is an **Issue**. Different software projects used them for different purposes.
 
-(TODO: Write more about how they are used)
+Issues are used for discussions of:
 
-In my case Issues would fill the role of Todoist Tasks.
+* Bugs
+* Features
+* Questions about usage
+* Design/Architecture Discussions
+
+Once the discussion was resolved, the Issues were marked as "closed" (from their default state of "open").
+
+In my case Issues filled the role of an analogue to Tasks in Todoist.
 
 ### Milestones
 
 Issues could be assigned to **Milestones**. This offered a view of a list of items that was, at first blush, very similar to Todoist's "Project View".
 
-(TODO: Write more about how they are used)
+They were used to group issues within a repository and track the count of remaining open Issues. As Issues are closed, the milestone's progress bar changes to reflect this.
 
 Most importantly, Milestones were the only concept that offered any native concept of due date. 
 
@@ -329,9 +333,6 @@ This would have the advantage of looking more visually similar to Todoist Projec
 While the major data mapping decisions were the above, there were plenty of other small decisions made.
 For a more thorough exploration of the mapping, see the [Data Mapping document](data_mapping.md).
 
-(TODO: Anything here?)
-
-
 ## Sharing
 
 # Idempotency in `import_from_todoist`
@@ -360,15 +361,23 @@ For details, see [Associating objects across changes](https://github.com/moverme
 
 `import_from_todoist` should have been designed to be able to scale to arbitrary numbers of Todoist projects and arbitrarily large numbers of GitHub Issues, with at worst linear slowdown.
 
-Scaling is an area that wasn't implemented well in `import_from_todoist`. There are places within the codebase with unbounded caches.
- Further, the Todoist API
+Scaling is an area that wasn't implemented well in `import_from_todoist`. There are places within the codebase with unbounded caches. There is a potential risk that `import_from_todoist` would exaust available memory that if asked to process very large Todoist projects.
 
 ## Paging
+
+Part of being able to process arbitrarily many objects is the ability to process a few objects at a time.
+
+The Todoist API didn't offer the a mechanism to page through objects stored in Todoist, limiting the ability to process arbitrary numbers of projects.
+
+The GitHub API offers [mechanisms to page through results](https://developer.github.com/v3/guides/traversing-with-pagination/), but `import_from_todoist` did not make use of them.
+
+See [Next Steps](next_steps.md)
+
 ## Parallelism
 
-Eventually even linear slowdown gets too slow. So 
+Eventually, even linear slowdown eventually gets too slow. Many of the processing steps performed by `import_from_todoist` could have been done in parallel. In order to limit the code complexity and amount of learning I had to do, I opted to not implement any parallelism.
 
-## Rate Limiting
+See [Next Steps](next_steps.md#parallelism) for discussion of potential improvements.
 
 # Security
 
@@ -390,8 +399,7 @@ Our threat model allows for:
 Notably our threat model assumes:
 * `import_from_todoist` is running on a trusted computing environment
     * The machine running `import_from_todoist` is not compromised, either physically or via software.
-* Access to the Internet cannot be impeded by a malicious actor
-(TODO: Perhaps reword these to be "Malicious actor cannot" for consistency)
+* Malicious actor cannot impeded access to the Internet
 
 ### Untrusted Input
 If malicious inputs are used by `import_from_todoist`, 
