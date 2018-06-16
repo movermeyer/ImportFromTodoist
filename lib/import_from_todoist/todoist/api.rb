@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'fileutils'
 
 module ImportFromTodoist
@@ -14,7 +16,7 @@ module ImportFromTodoist
         FileUtils.rm_rf(@cache_dir) if no_cache
         Dir.mkdir @cache_dir unless File.exist?(@cache_dir)
 
-        @projects_by_id = Hash[projects(include_archived = false).map { |project| [project.id, project] }]
+        @projects_by_id = Hash[projects(include_archived: false).map { |project| [project.id, project] }]
         @labels_by_id = Hash[labels.map { |label| [label.id, label] }]
         @tasks_by_id = Hash[tasks.map { |task| [task.id, task] }]
         @collaborators_by_id = Hash[collaborators.map { |collaborator| [collaborator.id, collaborator] }]
@@ -28,7 +30,7 @@ module ImportFromTodoist
         @labels_by_id[label_id]
       end
 
-      def projects(include_archived = false)
+      def projects(include_archived: false)
         projects = get_from_todoist('projects')
 
         if include_archived
@@ -47,7 +49,8 @@ module ImportFromTodoist
         @tasks_by_id[task_id]
       end
 
-      def completed_tasks(project_ids = [])
+      def completed_tasks(project_ids: nil)
+        project_ids ||= []
         results = []
 
         cache_file = File.join(@cache_dir, 'completed_tasks.json')
@@ -74,21 +77,22 @@ module ImportFromTodoist
         results
       end
 
-      def tasks(project_ids = [])
-        # TODO: Figure out a way to filter sync requests by project_id server side.
-        results = get_from_todoist('items').select { |item| project_ids.include? item.fetch('project_id') }
-        results += completed_tasks(project_ids)
-
-        # Getting the due date from the SYNC API (v7) is not easy. So we instead get it from the REST v8 API.
-        # We can't just use the REST v8 API, since it doesn't expose all of the fields we need.
+      def tasks(project_ids: nil)
         # TODO: Move caching to caching layer. https://github.com/movermeyer/ImportFromTodoist/issues/20
         cache_file = File.join(@cache_dir, 'tasks.json')
 
+        results = []
         if File.exist? cache_file
           open(cache_file, 'r') do |fin|
-            JSON.parse(fin.read).map { |hash| ImportFromTodoist::Todoist::Task.from_todoist(hash) }
+            results = JSON.parse(fin.read).map { |hash| ImportFromTodoist::Todoist::Task.from_todoist(hash) }
           end
         else
+          # TODO: Figure out a way to filter sync requests by project_id server side.
+          tasks = get_from_todoist('items')
+          tasks += completed_tasks(project_ids: project_ids)
+
+          # Getting the due date from the SYNC API (v7) is not easy. So we instead get it from the REST v8 API.
+          # We can't just use the REST v8 API, since it doesn't expose all of the fields we need.
           todoist_response = rest_api_connection.get('/API/v8/tasks')
           open(File.join(@cache_dir, 'tasks_rest_api.json'), 'w') do |fout|
             fout.write(JSON.dump(JSON.parse(todoist_response.body)))
@@ -98,28 +102,31 @@ module ImportFromTodoist
             due = task.fetch('due', {})
             hash[task['id']] = due['datetime'] || due['date']
           end
-          merged_hashes = results.map { |hash| hash.merge('due_on' => due_dates[hash.fetch('id')]) }
+          merged_hashes = tasks.map { |hash| hash.merge('due_on' => due_dates[hash.fetch('id')]) }
           open(cache_file, 'w') do |fout|
             fout.write(JSON.dump(merged_hashes))
           end
-          merged_hashes.map { |hash| ImportFromTodoist::Todoist::Task.from_todoist(hash) }
+          results = merged_hashes.map { |hash| ImportFromTodoist::Todoist::Task.from_todoist(hash) }
         end
+        project_ids ? results.select { |task| project_ids.include? task.project_id } : results
       end
 
-      def project_comments
+      def project_comments(project_ids: nil)
         # In Sync API (v7), comments are called 'notes'
         # While project_notes appear in the response for the "all" resource type,
         # the API doesn't understand "project_notes" as a resource type.
         # I never found a way to get the API to return just the "project_notes".
         # So we ask for everything and filter it on our side.
         # TODO: Get attachments
-        get_from_todoist('all')['project_notes'].map { |hash| ImportFromTodoist::Todoist::Comment.from_todoist(hash) }
+        comments = get_from_todoist('all')['project_notes'].map { |hash| ImportFromTodoist::Todoist::Comment.from_todoist(hash) }
+        project_ids ? comments.select { |comment| project_ids.include?(comment.project_id) } : comments
       end
 
-      def comments
+      def comments(project_ids: nil)
         # In Sync API (v7), comments are called 'notes'
-        # TODO: Get attachments
-        get_from_todoist('notes').map { |hash| ImportFromTodoist::Todoist::Comment.from_todoist(hash) }
+        # TODO: Get attachments, see https://github.com/movermeyer/ImportFromTodoist/issues/4
+        comments = get_from_todoist('notes').map { |hash| ImportFromTodoist::Todoist::Comment.from_todoist(hash) }
+        project_ids ? comments.select { |comment| project_ids.include?(comment.project_id) } : comments
       end
 
       def collaborator(collaborator_id)
@@ -128,10 +135,6 @@ module ImportFromTodoist
 
       def collaborators
         get_from_todoist('collaborators').map { |hash| ImportFromTodoist::Todoist::Collaborator.from_todoist(hash) }
-      end
-
-      def all
-        get_from_todoist('all')
       end
 
       private

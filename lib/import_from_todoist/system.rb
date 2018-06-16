@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 module ImportFromTodoist
   class System
-    PROJECT_COLUMNS = ['To Do', 'Comments']
+    PROJECT_COLUMNS = ['To Do', 'Comments'].freeze
 
     def initialize(todoist_api, github_api)
       @todoist_api = todoist_api
@@ -14,12 +16,12 @@ module ImportFromTodoist
       @todoist_task_id_to_github_issue = {}
       @todoist_task_id_to_github_milestone = {}
 
-      #TODO: these should really belong in a caching layer elsewhere
+      # TODO: these should really belong in a caching layer elsewhere
       # See https://github.com/movermeyer/ImportFromTodoist/issues/20
       @columns_by_project_id_and_column_name = {}
       @cards_by_project_id_and_target_id = {}
 
-      prepopulate_caches()
+      prepopulate_caches
     end
 
     def project_column(project, column)
@@ -30,7 +32,7 @@ module ImportFromTodoist
     def project(todoist_project_id)
       todoist_project = todoist_api.project(todoist_project_id)
       unless todoist_project_id_to_github_project.key?(todoist_project_id)
-        uncommited_github_project = ImportFromTodoist::Github::Project.from_todoist_project(todoist_project) # TODO: rename?
+        uncommited_github_project = ImportFromTodoist::Github::Project.from_todoist_project(todoist_project)
         todoist_project_id_to_github_project[todoist_project_id] = github_api.create_project(uncommited_github_project)
       end
 
@@ -38,7 +40,7 @@ module ImportFromTodoist
 
       # Ensuring Project Columns exist
       desired_project_column_names = PROJECT_COLUMNS
-      desired_project_column_names.each do |column_name| 
+      desired_project_column_names.each do |column_name|
         project_column(existing_project, ImportFromTodoist::Github::ProjectColumn.from_name(column_name))
       end
 
@@ -62,7 +64,7 @@ module ImportFromTodoist
       todoist_task_id_to_github_milestone[todoist_task.id] = github_api.update_milestone(existing_milestone, changes_needed)
     end
 
-    def sync_label(todoist_label)
+    def label(todoist_label)
       todoist_label_id_to_github_label[todoist_label.id] = label_helper(todoist_label_id_to_github_label[todoist_label.id], todoist_label)
     end
 
@@ -71,7 +73,7 @@ module ImportFromTodoist
       desired_issue_hash = {
         title: todoist_task.content,
         body: generate_github_description(todoist_task.id),
-        labels: todoist_task.labels.map { |label_id| sync_label(todoist_api.label(label_id)).name },
+        labels: todoist_task.labels.map { |label_id| label(todoist_api.label(label_id)).name },
         state: todoist_task.completed ? 'closed' : 'open'
       }
       desired_issue_hash[:milestone_number] = milestone(todoist_task).number if todoist_task.due_on
@@ -148,7 +150,7 @@ module ImportFromTodoist
     attr_accessor :todoist_task_id_to_github_issue
     attr_accessor :todoist_task_id_to_github_milestone
 
-    def prepopulate_caches()
+    def prepopulate_caches
       # Fetch existing issues
       github_api.issues.each do |issue|
         todist_id = get_todist_id(issue.body)
@@ -205,7 +207,7 @@ module ImportFromTodoist
     def label_helper(existing_label, todoist_label)
       existing_label ||= github_api.label(todoist_label.name)
       unless existing_label
-        uncommited_github_label = ImportFromTodoist::Github::Label.from_todoist_label(todoist_label) # TODO: rename?
+        uncommited_github_label = ImportFromTodoist::Github::Label.from_todoist_label(todoist_label)
         existing_label = github_api.create_label(uncommited_github_label)
       end
 

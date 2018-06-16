@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'set'
 
 module ImportFromTodoist
@@ -12,30 +14,31 @@ module ImportFromTodoist
       # This method describes the high-level operations that are being done to migrate the state in Todoist into GitHub.
       # It describes **what** is going to done, while all the details of **how** it is done are hidden elsewhere (in system.rb mostly).
 
-      todoist_projects = todoist_api.projects(include_archived = true)
+      todoist_projects = todoist_api.projects(include_archived: true)
       projects_to_process = Set.new(todoist_projects.select { |project| project_names_to_import.include?(project.name) })
       projects_ids_to_process = projects_to_process.map(&:id)
 
       puts "Going to process Todoist Projects: #{projects_to_process.map(&:name).join(', ')}"
 
       puts 'Syncing Todoist tasks.'
-      todoist_api.tasks(projects_ids_to_process).each do |task|
+      todoist_api.tasks(project_ids: projects_ids_to_process).each do |task|
         issue = system.issue(task.id)
 
         # Associate an Issue with a Project by creating a project card for it
-        system.sync_project_card(system.project(task.project_id), issue)
+        system.project_card(system.project(task.project_id), issue)
       end
 
+      # TODO: Process comments in same order as they appear in Todoist.
+      # See https://github.com/movermeyer/ImportFromTodoist/issues/3
+
       puts 'Syncing Todoist comments.'
-      todoist_api.comments.each do |comment|
-        next unless projects_ids_to_process.include?(comment.project_id)
-        _comment = system.comment(system.issue(comment.task_id), comment) # TODO: Process comments in same order as they appear in Todoist
+      todoist_api.comments(project_ids: projects_ids_to_process).each do |comment|
+        system.comment(system.issue(comment.task_id), comment)
       end
 
       puts 'Syncing Todoist project comments.'
-      todoist_api.project_comments.each do |comment|
-        next unless projects_ids_to_process.include?(comment.project_id)
-        _comment = system.project_comment(system.project(comment.project_id), comment) # TODO: Process comments in same order as they appear in Todoist
+      todoist_api.project_comments(project_ids: projects_ids_to_process).each do |comment|
+        system.project_comment(system.project(comment.project_id), comment)
       end
     end
 
