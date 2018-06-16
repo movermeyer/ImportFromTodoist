@@ -38,11 +38,11 @@ module ImportFromTodoist
       end
 
       def creation_hash
-        { title: title, description: description, state: state, due_on: due_on }
+        { title: title, description: description, state: state, due_on: due_on.iso8601 }
       end
 
       def mutable_value_hash
-        creation_hash
+        { title: title, description: description, state: state, due_on: due_on }
       end
     end
   end
