@@ -20,41 +20,49 @@ module ImportFromTodoist
 
       def private?
         response = connection.get("/repos/#{name}")
+        # TODO: Error handling, see https://github.com/movermeyer/ImportFromTodoist/issues/22
         JSON.load(response.body)['private']
       end
 
       def project_cards(column)
         response = connection.get("/projects/columns/#{url_encode(column.id)}/cards", state: 'all')
+        # TODO: Error handling, see https://github.com/movermeyer/ImportFromTodoist/issues/22
         JSON.parse(response.body).map { |json| ImportFromTodoist::Github::ProjectCard.from_github(patch_project_card_content(json)) }
       end
 
       def project_columns(project)
         response = connection.get("/projects/#{url_encode(project.id)}/columns", state: 'all')
+        # TODO: Error handling, see https://github.com/movermeyer/ImportFromTodoist/issues/22
         JSON.parse(response.body).map { |json| ImportFromTodoist::Github::ProjectColumn.from_github(json) }
       end
 
       def projects
         response = connection.get("/repos/#{name}/projects", state: 'all')
+        # TODO: Error handling, see https://github.com/movermeyer/ImportFromTodoist/issues/22
         JSON.parse(response.body).map { |json| ImportFromTodoist::Github::Project.from_github(json) }
       end
 
       def milestones
         response = connection.get("/repos/#{name}/milestones", state: 'all')
+        # TODO: Error handling, see https://github.com/movermeyer/ImportFromTodoist/issues/22
         JSON.parse(response.body).map { |json| ImportFromTodoist::Github::Milestone.from_github(json) }
       end
 
       def issues
         response = connection.get("/repos/#{name}/issues", state: 'all')
+        # TODO: Error handling, see https://github.com/movermeyer/ImportFromTodoist/issues/22
         JSON.parse(response.body).map { |json| ImportFromTodoist::Github::Issue.from_github(json) }
       end
 
       def comments
         response = connection.get("/repos/#{name}/issues/comments", state: 'all')
+        # TODO: Error handling, see https://github.com/movermeyer/ImportFromTodoist/issues/22
         JSON.parse(response.body).map { |json| ImportFromTodoist::Github::Comment.from_github(json) }
       end
 
       def comments_on_issue(issue)
         response = connection.get("/repos/#{name}/issues/#{url_encode(issue.number)}/comments", state: 'all')
+        # TODO: Error handling, see https://github.com/movermeyer/ImportFromTodoist/issues/22
         JSON.parse(response.body).map { |json| ImportFromTodoist::Github::Comment.from_github(json) }
       end
 
@@ -64,6 +72,7 @@ module ImportFromTodoist
 
       def labels
         response = connection.get("/repos/#{name}/labels", state: 'all')
+        # TODO: Error handling, see https://github.com/movermeyer/ImportFromTodoist/issues/22
         JSON.parse(response.body).map { |json| ImportFromTodoist::Github::Label.from_github(json) }
       end
 
@@ -74,6 +83,7 @@ module ImportFromTodoist
           req.url "/projects/#{url_encode(project.id)}/columns"
           req.body = JSON.dump(column.creation_hash)
         end
+        # TODO: Error handling, see https://github.com/movermeyer/ImportFromTodoist/issues/22
 
         ImportFromTodoist::Github::ProjectColumn.from_github(JSON.load(response.body))
       end
@@ -85,16 +95,18 @@ module ImportFromTodoist
           req.url "/repos/#{name}/projects"
           req.body = JSON.dump(project.creation_hash)
         end
+        # TODO: Error handling, see https://github.com/movermeyer/ImportFromTodoist/issues/22
 
         ImportFromTodoist::Github::Project.from_github(JSON.load(response.body))
       end
 
-      def update_project(project, changes_needed) # TODO: Rework? Better signature? (project, changes_needed)?
+      def update_project(project, changes_needed)
         return project if changes_needed.empty?
         response = connection.patch do |req|
           req.url "/projects/#{url_encode(project.id)}"
           req.body = JSON.dump(changes_needed)
         end
+        # TODO: Error handling, see https://github.com/movermeyer/ImportFromTodoist/issues/22
 
         ImportFromTodoist::Github::Project.from_github(JSON.load(response.body))
       end
@@ -106,6 +118,7 @@ module ImportFromTodoist
           req.url "/repos/#{name}/issues"
           req.body = JSON.dump(issue.creation_hash)
         end
+        # TODO: Error handling, see https://github.com/movermeyer/ImportFromTodoist/issues/22
 
         ImportFromTodoist::Github::Issue.from_github(JSON.load(response.body))
       end
@@ -117,6 +130,7 @@ module ImportFromTodoist
           req.url "/repos/#{name}/issues/#{url_encode(issue.number)}"
           req.body = JSON.dump(changes_needed)
         end
+        # TODO: Error handling, see https://github.com/movermeyer/ImportFromTodoist/issues/22
 
         ImportFromTodoist::Github::Issue.from_github(JSON.load(response.body))
       end
@@ -128,6 +142,7 @@ module ImportFromTodoist
           req.url "/repos/#{name}/labels"
           req.body = JSON.dump(label.creation_hash)
         end
+        # TODO: Error handling, see https://github.com/movermeyer/ImportFromTodoist/issues/22
 
         ImportFromTodoist::Github::Label.from_github(JSON.load(response.body))
       end
@@ -139,6 +154,7 @@ module ImportFromTodoist
           req.url "/repos/#{name}/labels/#{url_encode(label.name)}"
           req.body = JSON.dump(changes_needed)
         end
+        # TODO: Error handling, see https://github.com/movermeyer/ImportFromTodoist/issues/22
 
         ImportFromTodoist::Github::Label.from_github(JSON.load(response.body))
       end
@@ -150,6 +166,7 @@ module ImportFromTodoist
           req.url "/repos/#{name}/milestones"
           req.body = JSON.dump(milestone.creation_hash)
         end
+        # TODO: Error handling, see https://github.com/movermeyer/ImportFromTodoist/issues/22
 
         ImportFromTodoist::Github::Milestone.from_github(JSON.load(response.body))
       end
@@ -161,6 +178,7 @@ module ImportFromTodoist
           req.url "/repos/#{name}/milestones/#{url_encode(milestone.number)}"
           req.body = JSON.dump(changes_needed)
         end
+        # TODO: Error handling, see https://github.com/movermeyer/ImportFromTodoist/issues/22
 
         ImportFromTodoist::Github::Milestone.from_github(JSON.load(response.body))
       end
@@ -173,6 +191,7 @@ module ImportFromTodoist
           req.url "/repos/#{name}/issues/#{url_encode(issue.number)}/comments"
           req.body = JSON.dump(comment.creation_hash)
         end
+        # TODO: Error handling, see https://github.com/movermeyer/ImportFromTodoist/issues/22
 
         ImportFromTodoist::Github::Comment.from_github(JSON.load(response.body))
       end
@@ -184,6 +203,7 @@ module ImportFromTodoist
           req.url "/repos/#{name}/issues/comments/#{url_encode(comment.id)}"
           req.body = JSON.dump(changes_needed)
         end
+        # TODO: Error handling, see https://github.com/movermeyer/ImportFromTodoist/issues/22
 
         ImportFromTodoist::Github::Comment.from_github(JSON.load(response.body))
       end
@@ -202,6 +222,7 @@ module ImportFromTodoist
             req.headers['Authorization'] = "token #{api_token}"
             req.headers.merge!(GITHUB_API_VERSION)
           end
+          # TODO: Error handling, see https://github.com/movermeyer/ImportFromTodoist/issues/22
 
           target = JSON.load(response.body)
           project_card_hash['content_id'] = target.fetch('id')
@@ -218,6 +239,7 @@ module ImportFromTodoist
           req.url "/projects/columns/#{url_encode(column.id)}/cards"
           req.body = JSON.dump(comment.creation_hash)
         end
+        # TODO: Error handling, see https://github.com/movermeyer/ImportFromTodoist/issues/22
 
         ImportFromTodoist::Github::ProjectCard.from_github(patch_project_card_content(JSON.load(response.body)))
       end
@@ -229,15 +251,9 @@ module ImportFromTodoist
           req.url "/projects/columns/cards/#{url_encode(project_card.id)}"
           req.body = JSON.dump(changes_needed)
         end
+        # TODO: Error handling, see https://github.com/movermeyer/ImportFromTodoist/issues/22
 
         ImportFromTodoist::Github::ProjectCard.from_github(patch_project_card_content(JSON.load(response.body)))
-      end
-
-      def move_project_card(project_card, column, position = 'top')
-        response = connection.post do |req|
-          req.url "/projects/columns/cards/#{url_encode(project_card.id)}/moves"
-          req.body = JSON.dump(position: position, column_id: desired_column.id)
-        end
       end
 
       private
@@ -245,15 +261,6 @@ module ImportFromTodoist
       attr_reader :api_token
 
       def connection
-        # TODO: Remove. It allows for [Fiddler](https://www.telerik.com/fiddler) debugging
-        # @connection ||= Faraday.new(url: GITHUB_API_URL, proxy: 'http://127.0.0.1:8888') do |faraday|
-        #   faraday.adapter :net_http do |http| # yields Net::HTTP
-        #     http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-        #   end
-        #   faraday.headers['Authorization'] = "token #{api_token}"
-        #   faraday.headers.merge!(GITHUB_API_VERSION)
-        # end
-
         @connection ||= Faraday.new(url: GITHUB_API_URL) do |faraday|
           faraday.adapter :net_http
           faraday.headers['Authorization'] = "token #{api_token}"

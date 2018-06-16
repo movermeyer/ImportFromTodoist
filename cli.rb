@@ -27,12 +27,12 @@ Usage: #{$PROGRAM_NAME} [options]
       options[:allow_public] = allow_public
     end
 
-    # TODO: Implement this.
+    # TODO: Implement this. See https://github.com/movermeyer/ImportFromTodoist/issues/8
     # opts.on('--sync-deletes', TrueClass, 'Synchronizes destructive changes to GitHub. Tries to make GitHub Issues a perfect mirror of Todoist state.') do |sync_deletes|
     #   options[:sync_deletes] = sync_deletes
     # end
 
-    # TODO: Implement this.
+    # TODO: Implement this. See https://github.com/movermeyer/ImportFromTodoist/issues/7
     # opts.on('--dry-run', TrueClass, 'Analyzes the changes needed, and prints the changes out for review. Does not make any changes to GitHub.') do |dry_run|
     #   options[:dry_run] = dry_run
     # end

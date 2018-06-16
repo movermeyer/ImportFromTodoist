@@ -3,14 +3,14 @@
 module ImportFromTodoist
   module Github
     module DescriptionHelper
-      def self.generate_github_description(todoist_id, description: '', context: '') # TODO: Remove
+      def self.generate_github_description(todoist_id, description: '', context: '')
         # Generates a description that includes a GitHub Markdown comment (ie.
         # hack, see https://stackoverflow.com/a/20885980/6460914). That way, the
         # Todoist id can be embedded for easy cross-referencing in future runs.
         [description, context, explanation_comment(todoist_id)].reject(&:empty?).join("\n\n")
       end
 
-      def self.generate_comment_context(todoist_comment, todoist_collaborator) # TODO: Remove
+      def self.generate_comment_context(todoist_comment, todoist_collaborator)
         # Generates a description that includes a GitHub Markdown comment (ie.
         # hack, see https://stackoverflow.com/a/20885980/6460914). That way, the
         # Todoist id can be embedded for easy cross-referencing in future runs.

@@ -5,10 +5,10 @@ require 'fileutils'
 module ImportFromTodoist
   module Todoist
     class Api
-      TODOIST_SYNC_API_URL = 'https://todoist.com'.freeze
-      TODOIST_REST_API_URL = 'https://beta.todoist.com'.freeze
+      TODOIST_SYNC_API_URL = 'https://todoist.com'
+      TODOIST_REST_API_URL = 'https://beta.todoist.com'
 
-      TODOIST_CACHE_DIR = '.todoist_cache'.freeze
+      TODOIST_CACHE_DIR = '.todoist_cache'
 
       def initialize(api_token, cache_dir: TODOIST_CACHE_DIR, no_cache: false)
         @api_token = api_token
@@ -36,10 +36,11 @@ module ImportFromTodoist
         if include_archived
           # TODO: cache this fetch too?
           puts 'Fetching archived projects from Todoist'
-          todoist_response = sync_api_connection.get '/api/v7/projects/get_archived', token: api_token
+          response = sync_api_connection.get '/api/v7/projects/get_archived', token: api_token
+          # TODO: Error handling, see https://github.com/movermeyer/ImportFromTodoist/issues/22
 
           # TODO: Error handling
-          projects += JSON.parse(todoist_response.body)
+          projects += JSON.parse(response.body)
         end
 
         projects = projects.map { |hash| ImportFromTodoist::Todoist::Project.from_todoist(hash) }
@@ -61,12 +62,14 @@ module ImportFromTodoist
           end
         else
           if project_ids.empty? # TODO: Nicer logic
-            todoist_response = sync_api_connection.get('/api/v7/completed/get_all', token: api_token)
-            results += JSON.parse(todoist_response.body)['items']
+            response = sync_api_connection.get('/api/v7/completed/get_all', token: api_token)
+            # TODO: Error handling, see https://github.com/movermeyer/ImportFromTodoist/issues/22
+            results += JSON.parse(response.body)['items']
           else
             project_ids.each do |project_id|
-              todoist_response = sync_api_connection.get('/api/v7/completed/get_all', token: api_token, project_id: project_id)
-              results += JSON.parse(todoist_response.body)['items']
+              response = sync_api_connection.get('/api/v7/completed/get_all', token: api_token, project_id: project_id)
+              # TODO: Error handling, see https://github.com/movermeyer/ImportFromTodoist/issues/22
+              results += JSON.parse(response.body)['items']
             end
           end
           open(cache_file, 'w') do |fout|
@@ -78,7 +81,7 @@ module ImportFromTodoist
       end
 
       def tasks(project_ids: nil)
-        # TODO: Move caching to caching layer. https://github.com/movermeyer/ImportFromTodoist/issues/20
+        # TODO: Move caching to caching layer. See https://github.com/movermeyer/ImportFromTodoist/issues/20
         cache_file = File.join(@cache_dir, 'tasks.json')
 
         results = []
@@ -87,18 +90,21 @@ module ImportFromTodoist
             results = JSON.parse(fin.read).map { |hash| ImportFromTodoist::Todoist::Task.from_todoist(hash) }
           end
         else
-          # TODO: Figure out a way to filter sync requests by project_id server side.
+          # In Sync API (v7), tasks are called 'items'
+          #
+          # TODO: Is there a way to filter sync requests by project_id server side?
           tasks = get_from_todoist('items')
           tasks += completed_tasks(project_ids: project_ids)
 
           # Getting the due date from the SYNC API (v7) is not easy. So we instead get it from the REST v8 API.
           # We can't just use the REST v8 API, since it doesn't expose all of the fields we need.
-          todoist_response = rest_api_connection.get('/API/v8/tasks')
+          response = rest_api_connection.get('/API/v8/tasks')
+          # TODO: Error handling, see https://github.com/movermeyer/ImportFromTodoist/issues/22
           open(File.join(@cache_dir, 'tasks_rest_api.json'), 'w') do |fout|
-            fout.write(JSON.dump(JSON.parse(todoist_response.body)))
+            fout.write(JSON.dump(JSON.parse(response.body)))
           end
 
-          due_dates = JSON.parse(todoist_response.body).each_with_object({}) do |task, hash|
+          due_dates = JSON.parse(response.body).each_with_object({}) do |task, hash|
             due = task.fetch('due', {})
             hash[task['id']] = due['datetime'] || due['date']
           end
@@ -113,17 +119,20 @@ module ImportFromTodoist
 
       def project_comments(project_ids: nil)
         # In Sync API (v7), comments are called 'notes'
+        #
         # While project_notes appear in the response for the "all" resource type,
         # the API doesn't understand "project_notes" as a resource type.
         # I never found a way to get the API to return just the "project_notes".
         # So we ask for everything and filter it on our side.
-        # TODO: Get attachments
+        #
+        # TODO: Get attachments, see https://github.com/movermeyer/ImportFromTodoist/issues/4
         comments = get_from_todoist('all')['project_notes'].map { |hash| ImportFromTodoist::Todoist::Comment.from_todoist(hash) }
         project_ids ? comments.select { |comment| project_ids.include?(comment.project_id) } : comments
       end
 
       def comments(project_ids: nil)
         # In Sync API (v7), comments are called 'notes'
+        #
         # TODO: Get attachments, see https://github.com/movermeyer/ImportFromTodoist/issues/4
         comments = get_from_todoist('notes').map { |hash| ImportFromTodoist::Todoist::Comment.from_todoist(hash) }
         project_ids ? comments.select { |comment| project_ids.include?(comment.project_id) } : comments
@@ -145,17 +154,7 @@ module ImportFromTodoist
 
       attr_reader :api_token
 
-      def fiddler_connection(url, proxy = 'http://127.0.0.1:8888')
-        # TODO: Remove. It allows for [Fiddler](https://www.telerik.com/fiddler) debugging
-        Faraday.new(url: url, proxy: proxy) do |faraday|
-          faraday.adapter :net_http do |http| # yields Net::HTTP
-            http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-          end
-          faraday.headers['Authorization'] = "Bearer #{api_token}"
-        end
-      end
-
-      def normal_connection(url)
+      def connection(url)
         Faraday.new(url: url) do |faraday|
           faraday.adapter :net_http
           faraday.headers['Authorization'] = "Bearer #{api_token}"
@@ -163,13 +162,11 @@ module ImportFromTodoist
       end
 
       def sync_api_connection
-        @sync_connection ||= normal_connection(TODOIST_SYNC_API_URL)
-        # @sync_connection ||= fiddler_connection(TODOIST_SYNC_API_URL)
+        @sync_connection ||= connection(TODOIST_SYNC_API_URL)
       end
 
       def rest_api_connection
-        @rest_connection ||= normal_connection(TODOIST_REST_API_URL)
-        # @rest_connection ||= fiddler_connection(TODOIST_REST_API_URL)
+        @rest_connection ||= connection(TODOIST_REST_API_URL)
       end
 
       def get_from_todoist(resource_type)
@@ -182,13 +179,13 @@ module ImportFromTodoist
           end
         else
           puts "Fetching #{resource_type} from Todoist"
-          todoist_response = sync_api_connection.get '/api/v7/sync',
+          response = sync_api_connection.get '/api/v7/sync',
                                                      token: api_token,
                                                      sync_token: '*',
                                                      resource_types: JSON.dump([resource_type])
+          # TODO: Error handling, see https://github.com/movermeyer/ImportFromTodoist/issues/22
 
-          # TODO: Error handling
-          resources = JSON.parse(todoist_response.body)
+          resources = JSON.parse(response.body)
           resources = resources[resource_type] if resource_type != 'all'
           open(cache_file, 'w') do |fout|
             fout.write(JSON.dump(resources))

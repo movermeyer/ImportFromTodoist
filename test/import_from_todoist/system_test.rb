@@ -57,7 +57,7 @@ module ImportFromTodoist
       existing_description = ImportFromTodoist::Github::DescriptionHelper.generate_github_description(todoist_project.id)
       existing_github_project = ImportFromTodoist::Github::Project.send(:new, 9999, 'Old Project', existing_description, 'closed')
 
-      @github_api.projects # Hack to clear the first call in `setup``. TODO: Figure out how it's supposed to be done.
+      @github_api.projects # Hack to clear the first call defined in `setup`. TODO: Figure out how it's supposed to be done.
       @github_api.expect :projects, [existing_github_project]
       system = System.new(@todoist_api, @github_api)
 
@@ -85,7 +85,7 @@ module ImportFromTodoist
       existing_description = ImportFromTodoist::Github::DescriptionHelper.generate_github_description(task.id)
       existing_github_milestone = ImportFromTodoist::Github::Milestone.send(:new, 1_233_456, 10, 'Old Task Name', existing_description, 'closed', DateTime.iso8601('2018-06-11T11:11:11Z'))
 
-      @github_api.milestones # Hack to clear the first call in `setup``. TODO: Figure out how it's supposed to be done.
+      @github_api.milestones # Hack to clear the first call defined in `setup`. TODO: Figure out how it's supposed to be done.
       @github_api.expect :milestones, [existing_github_milestone]
       system = System.new(@todoist_api, @github_api)
 

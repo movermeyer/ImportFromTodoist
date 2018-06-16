@@ -2,7 +2,9 @@
 
 module ImportFromTodoist
   class System
-    PROJECT_COLUMNS = ['To Do', 'Comments'].freeze
+    TO_DO_COLUMN_NAME = 'To Do'
+    COMMENTS_COLUMN_NAME = 'Comments'
+    PROJECT_COLUMNS = [TO_DO_COLUMN_NAME, COMMENTS_COLUMN_NAME].freeze
 
     def initialize(todoist_api, github_api)
       @todoist_api = todoist_api
@@ -92,7 +94,7 @@ module ImportFromTodoist
 
     def project_card(target_project, issue)
       desired_card = ImportFromTodoist::Github::ProjectCard.from_github_issue(issue)
-      column = project_column(target_project, ImportFromTodoist::Github::ProjectColumn.from_name('To Do')) # TODO: Refactor out this constant "To Do"
+      column = project_column(target_project, ImportFromTodoist::Github::ProjectColumn.from_name(TO_DO_COLUMN_NAME))
       fetch_project_cards(target_project)
 
       unless cards_by_project_id_and_target_id[target_project.id].key? issue.id
@@ -101,7 +103,9 @@ module ImportFromTodoist
 
       existing_card = cards_by_project_id_and_target_id[target_project.id][issue.id]
 
-      # TODO: Move the card to a new position or column
+      # TODO: Move the card to a new position or column. 
+      # See https://github.com/movermeyer/ImportFromTodoist/issues/3 and
+      # https://github.com/movermeyer/ImportFromTodoist/issues/21
     end
 
     def comment(target_issue, todoist_comment)
@@ -121,7 +125,7 @@ module ImportFromTodoist
     def project_comment(target_project, todoist_comment)
       desired_card = ImportFromTodoist::Github::ProjectCard.from_todoist_project_comment(todoist_comment, todoist_api.collaborator(todoist_comment.poster))
 
-      column = project_column(target_project, ImportFromTodoist::Github::ProjectColumn.from_name('Comments')) # TODO: Refactor out this constant "Comments"
+      column = project_column(target_project, ImportFromTodoist::Github::ProjectColumn.from_name(COMMENTS_COLUMN_NAME))
       existing_cards = fetch_project_cards(target_project)
 
       unless existing_cards.key?(todoist_comment.id)
@@ -139,8 +143,8 @@ module ImportFromTodoist
 
     attr_reader :todoist_api
     attr_reader :github_api
-    attr_accessor :cards_by_project_id_and_target_id # TODO: move elsewhere?
-    attr_accessor :columns_by_project_id_and_column_name # TODO: move elsewhere?
+    attr_accessor :cards_by_project_id_and_target_id
+    attr_accessor :columns_by_project_id_and_column_name
     attr_accessor :todoist_comment_id_to_github_comment
     attr_accessor :todoist_label_id_to_github_label
     attr_accessor :todoist_priority_to_github_label
@@ -150,16 +154,20 @@ module ImportFromTodoist
     attr_accessor :todoist_task_id_to_github_milestone
 
     def prepopulate_caches
+      # TODO: At most we should only be caching the id mapping here, and 
+      # should definitely move the object caching to a caching layer
+      # See https://github.com/movermeyer/ImportFromTodoist/issues/20
+
       # Fetch existing issues
       github_api.issues.each do |issue|
         todist_id = ImportFromTodoist::Github::DescriptionHelper.get_todist_id(issue.body)
-        todoist_task_id_to_github_issue[todist_id] = issue if todist_id # TODO: Only cache the ids here. repo should cache the actual objects
+        todoist_task_id_to_github_issue[todist_id] = issue if todist_id
       end
 
       # Fetch existing projects
       github_api.projects.each do |project|
         todist_id = ImportFromTodoist::Github::DescriptionHelper.get_todist_id(project.body)
-        todoist_project_id_to_github_project[todist_id] = project if todist_id # TODO: Only cache the ids here. repo should cache the actual objects
+        todoist_project_id_to_github_project[todist_id] = project if todist_id
       end
 
       # Fetch existing milestones
@@ -171,13 +179,12 @@ module ImportFromTodoist
       # Fetch existing comments
       github_api.comments.each do |comment|
         todist_id = ImportFromTodoist::Github::DescriptionHelper.get_todist_id(comment.body)
-        todoist_comment_id_to_github_comment[todist_id] = comment if todist_id # TODO: Only cache the ids here. repo should cache the actual objects
+        todoist_comment_id_to_github_comment[todist_id] = comment if todist_id
       end
     end
 
     def diff_hashes(hash1, hash2)
-      # Something like `{ a: 1 }.to_a & { a: 1, b: 2 }.to_a` or set difference, left_align
-      # TODO: There is probably a better way to do this.
+      # TODO: There is probably a better way to do this in Ruby.
       differences = {}
       hash1.each do |key, value|
         differences[key] = value if hash2[key] != value
@@ -211,9 +218,12 @@ module ImportFromTodoist
           puts "Fetching from column '#{column.name}' of project '#{target_project.name}'"
           cards = github_api.project_cards(column)
           cards.each do |card|
+            # TODO: At most we should only be caching the id mapping here, and 
+            # should definitely move the object caching to a caching layer
+            # See https://github.com/movermeyer/ImportFromTodoist/issues/20
             if card.note
               todist_id = ImportFromTodoist::Github::DescriptionHelper.get_todist_id(card.note)
-              cards_by_project_id_and_target_id[target_project.id][todist_id] = card if todist_id # TODO: Only cache the ids here. repo should cache the actual objects
+              cards_by_project_id_and_target_id[target_project.id][todist_id] = card if todist_id
             else
               cards_by_project_id_and_target_id[target_project.id][card.content_id] = card
             end
@@ -222,5 +232,6 @@ module ImportFromTodoist
       end
       cards_by_project_id_and_target_id[target_project.id]
     end
+    
   end
 end
