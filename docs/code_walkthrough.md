@@ -70,4 +70,4 @@ As [mentioned above](#a-quick-note-about-caching), the current code has `System`
 
 Tests are stored in the `test` directory. The directory structure mirrors that of the `lib` directory.
 
-The tests use the `minitest` gem. See [Testing](TODO: Link) for details about how to run the tests.
+The tests use the `minitest` gem. See [Testing](../CONTRIBUTING.md#testing) for details about how to run the tests.

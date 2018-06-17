@@ -17,9 +17,8 @@
             - [Projects](#projects)
     - [Nice Features](#nice-features)
     - [Not Implemented](#not-implemented)
-        - [Missing Functionality (TODO: Update TOC)](#missing-functionality-todo-update-toc)
+        - [Missing Functionality](#missing-functionality)
         - [Other Aspects](#other-aspects)
-    - [Advanced Usage](#advanced-usage)
     - [Contributing](#contributing)
         - [License](#license)
 
@@ -43,7 +42,7 @@ Consider this repo to be unmaintained, beta quality code.
 
 ### Pre-requisites
 
-* [Ruby](https://www.ruby-lang.org/en/) (Tested with 2.4.4)
+* [Ruby](https://www.ruby-lang.org/en/) (Tested with [2.4.4](.ruby_version))
 * [Git](https://git-scm.com/) (any modern version)
 * [Bundler](https://bundler.io/)
 
@@ -150,7 +149,7 @@ Here is the high-level description of the conversion. For a detailed description
 
 Due to the time constraints of the project, a number of features were not implemented:
 
-### Missing Functionality (TODO: Update TOC)
+### Missing Functionality
 * Assignment of Tasks/Issues to collaborators (See [#9](https://github.com/movermeyer/ImportFromTodoist/issues/9))
 * Attachments on Comments (See [#4](https://github.com/movermeyer/ImportFromTodoist/issues/4))
 * Reactions on Comments (See [#5](https://github.com/movermeyer/ImportFromTodoist/issues/5))
@@ -166,10 +165,6 @@ Due to the time constraints of the project, a number of features were not implem
 * Scaling to arbirarily large imports (See [#16](https://github.com/movermeyer/ImportFromTodoist/issues/16))
 * Internationalization (i18n) (See [#18](https://github.com/movermeyer/ImportFromTodoist/issues/18))
 * Project Auto-Kanban
-
-## Advanced Usage
-
-For a more in-depth discussion of each feature, see [TODO: Link to more discussion]
 
 ## Contributing
 

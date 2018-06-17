@@ -38,8 +38,7 @@ module ImportFromTodoist
           puts 'Fetching archived projects from Todoist'
           response = sync_api_connection.get '/api/v7/projects/get_archived', token: api_token
           # TODO: Error handling, see https://github.com/movermeyer/ImportFromTodoist/issues/22
-
-          # TODO: Error handling
+          
           projects += JSON.parse(response.body)
         end
 

@@ -5,7 +5,28 @@ Further, there are several refactorings that should be done in order to clean up
 
 This page will document the state of the project at the time of submission, and discuss areas that could be improved given more time.
 
-Most of these can also be found in the [backlog in GitHub Issues](TODO:)
+Most of these can also be found in the [backlog in GitHub Issues](https://github.com/movermeyer/ImportFromTodoist/issues)
+
+<!-- Generated with "Markdown T​O​C" extension for Visual Studio Code -->
+<!-- TOC -->
+
+- [Introduction](#introduction)
+- [Current State](#current-state)
+- [Future Considerations](#future-considerations)
+    - [Caching](#caching)
+    - [Error Handling](#error-handling)
+    - [Logging](#logging)
+    - [More Complete Tests](#more-complete-tests)
+    - [Rate Limiting](#rate-limiting)
+    - [Internationalization i18n](#internationalization-i18n)
+    - [Scalability](#scalability)
+        - [Bounded caches](#bounded-caches)
+        - [Paging](#paging)
+    - [Performance](#performance)
+        - [Parallelism](#parallelism)
+- [Fundamental re-architecting](#fundamental-re-architecting)
+
+<!-- /TOC -->
 
 # Current State
 
@@ -20,12 +41,11 @@ For a list of notable missing functionality, see the [README](README.md#missing-
 
 I feel that each of these missing features are not core to the use To-Do App use case, but would have to be implemented for the project to be considered complete.
 
-For an extensive list, see the [backlog in GitHub Issues](TODO:)
+For an extensive list, see the [backlog in GitHub Issues](https://github.com/movermeyer/ImportFromTodoist/issues)
 
 # Future Considerations
 
-
-# Caching
+## Caching
 
 Perhaps the biggest problem with the way the code is currently structured relates to the way caching is being done. It is currently being done in multiple places, in inconsistent ways.
 
@@ -33,23 +53,51 @@ The caching belongs in a layer that would sit between the [`System` and the `API
 
 Due to time constraints, I did not manage to refactor the caching into its own layer.
 
-See [](TODO:) for details.
+See [Issue #20](https://github.com/movermeyer/ImportFromTodoist/issues/20) for details.
 
 ## Error Handling
 
-(TODO: copy-paste from issue)
+Currently, `import_from_todoist` assumes that every network request will always succeed.
+
+This is obviously not the case. Every network request could fail in any one of many ways, at almost any layer of the OSI model.
+
+Things to do:
+- Protect against intermittent network failures
+- Protect against remote server issues (ex. `5xx` status codes)
+- Protect against rate limit exceptions (See #15)
+- Error loudly on anything else other than successful status code
+
+See [Issue #22](https://github.com/movermeyer/ImportFromTodoist/issues/22).
 
 ## Logging
 
-Right now, `import_from_todoist` simply `puts` out all of its log messages to `stdout`. 
+Currently, `import_from_todoist` simply dumps all its messages to `stdout` via Ruby's `puts` operation.
 
-(TODO: reference 12 factor)
+There is nothing inherently wrong with writing all your messages to `stdout` (this is one of the [12 factors](https://12factor.net/) after all). But there should still be some mechanism that allows for filtering of this message stream.
 
 Given more time, I would research a logging library for Ruby and use it to add severity levels to the messages. That way users would have a mechanism for easily filtering the output. 
 
-See TODO: Add link to issue
+See [Issue #19](https://github.com/movermeyer/ImportFromTodoist/issues/19).
+
+## More Complete Tests
+
+While `import_from_todoist` has tests that cover some of the objects, due to time constraints not all objects received the same testing budget.
+
+Given more time, I would extend the tests to cover all of the classes. Further, I would integrate some CI/CD test runner (likely CircleCI or TravisCI) to run the tests against every pull request. See [Issue #13](https://github.com/movermeyer/ImportFromTodoist/issues/13)
+
+In this same vein, once I had a deeper understanding of Ruby, I would integrate the Ruby linters into the CI/CD pipeline in order to help ensure a consistent code style. While I made use of [numerous Ruby linters](https://github.com/rubyide/vscode-ruby#linters) during the development of `import_from_todoist`, some of them are overly zealous and would have to be configured carefully before allowing them to force a build failure.
+
+Finally I would integrate a security dependency vulnerability scanner into the CI/CD workflow. See [Issue #12](https://github.com/movermeyer/ImportFromTodoist/issues/12)
 
 ## Rate Limiting
+
+Both [Todoist](https://developer.todoist.com/sync/v7/#limits24) and [GitHub](https://developer.github.com/v3/rate_limit/) enforce rate limits on API access.
+
+`import_from_todoist` should be made to respect customizable rate limits, with default rate limits matching the rates prescribed in the API docs. 
+
+`import_from_todoist` also needs to be able to understand how to "back off" in the case of the limits changing or in the face of soft limits.
+
+See [Issue #15](https://github.com/movermeyer/ImportFromTodoist/issues/15)
 
 ## Internationalization i18n
 
@@ -71,7 +119,7 @@ More effort needs to be made to make use of paging mechanisms. While the Todoist
 
 ### Parallelism
 
-Even with more time, I might not implement parallel processing without consideration. Parallelism is notoriously for adding complexing and maintenance overhead to code-bases. The fact that some processing steps of `import_from_todoist` require serial processing (ex. issue comments need to be added to issues in the same order) would mean that any potential performance gains from parallelism would be bounded by [Amdahl's Law](TODO: Add link). Without restruacturing the entire codebase (to use a pattern or framework specifically meant for this use case), and without a real-world use demand for it, I suspect the overhead would be too much.
+Even with more time, I might not implement parallel processing without consideration. Parallelism is notoriously for adding complexing and maintenance overhead to code-bases. The fact that some processing steps of `import_from_todoist` require serial processing (ex. issue comments need to be added to issues in the same order) would mean that any potential performance gains from parallelism would be bounded by [Amdahl's Law](https://en.wikipedia.org/wiki/Amdahl%27s_law). Without restruacturing the entire codebase (to use a pattern or framework specifically meant for this use case), and without a real-world use demand for it, I suspect the overhead would be too much.
 
 # Fundamental re-architecting
 
@@ -79,6 +127,4 @@ Fundamentally, a large portion of this utility is very similar to an ORM. Ideall
 
 While the use of such a technology would not likely save you anything in terms of lines of code written, it would likely add additional structure to the code and might be able to give you nice features "out of the box" (such as [parallelism](#parallelism) or rate limiting).
 
-Given more time, I would research potential Ruby ORM or ETL frameworks and possibly rewrite portions of `import_from_todoist` to make use of them. This work might dove-tail nicely with [refactoring the way caching is done](#caching). 
-
-(TODO: search for GitLab)
+Given more time, I would research potential Ruby ORM or ETL frameworks and possibly rewrite portions of `import_from_todoist` to make use of them. This work might dove-tail nicely with [refactoring the way caching is done](#caching).

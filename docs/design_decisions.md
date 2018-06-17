@@ -2,7 +2,6 @@
 <!-- TOC anchorMode:github.com -->
 
 - [Introduction](#introduction)
-- [TODO: Whine less?](#todo-whine-less)
 - [General Philosophy](#general-philosophy)
 - [Why Todoist?](#why-todoist)
 - [Functional Requirements](#functional-requirements)
@@ -55,16 +54,14 @@ Hello, I'm [Michael Overmeyer](https://movermeyer.com) (@movermeyer).
 This page will discuss some of the decisions I made during the development of `import_from_todoist`. 
 It will be written as a first-person, post-hoc narrative of the project, but you should be able to use the Table of Contents to jump to areas that are interesting to you without feeling too lost.
 
-
-# TODO: Whine less?
-When reading this, it will be important to remember two things:
+When reading this, remember two things:
 
 1. This project was written for a take-home assignment as part of the interview process for a position at GitHub.
     * ie. Time was limited (1.5 weeks, part-time).
 1. This was my first-ever Ruby code.
     * ie. I had a LOT of learning to do.
     
-Both of these aspects factor into nearly every decision made during the project.
+Both of these aspects factored (at least somewhat) into every decision made during the project.
 
 At times I will discuss what could be done in future iterations of `import_from_todoist`, since there was not enough time to do everything. A more in-depth discussion of these can be found in [Next Steps](next_steps.md). 
 
@@ -174,7 +171,10 @@ Given my experience using Todoist, I felt that these 4 ways of organizing and vi
 
 I confirmed this list of core functionality by [interviewing another user](https://www.interaction-design.org/literature/article/how-to-conduct-user-interviews) of Todoist about how they use the software, as well as reading [Todoist's documentation](https://todoist.com/guide/getting-started) and seeing that they also focus on this set of functionality. 
 
-(TODO: Talk about looking for examples of people using GitHub as a To-Do App?)
+I also tried to verify the claim that the [problem statement's](problem_statement.md) claim that:
+> Many people decide to use GitHub Issues in favor of other task managers or To-Do applications
+in hopes of learning from their workflows while designing my user experience.
+While I didn't spend much time on this, I didn't end up finding explanations of workflows more advanced than using the checkbox Markdown syntax in a Gist.
 
 This could hardly be considered a rigorous user study, but it confirmed that having this functionality might make GitHub Issues a viable method of issue tracking.
 

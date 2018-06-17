@@ -18,7 +18,7 @@ module ImportFromTodoist
       @todoist_task_id_to_github_issue = {}
       @todoist_task_id_to_github_milestone = {}
 
-      # TODO: these should really belong in a caching layer elsewhere
+      # TODO: These should really belong in a caching layer elsewhere
       # See https://github.com/movermeyer/ImportFromTodoist/issues/20
       @columns_by_project_id_and_column_name = {}
       @cards_by_project_id_and_target_id = {}
