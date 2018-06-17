@@ -4,6 +4,7 @@
 - [Introduction](#introduction)
 - [General Philosophy](#general-philosophy)
 - [Why Todoist?](#why-todoist)
+- [Why a CLI?](#why-a-cli)
 - [Functional Requirements](#functional-requirements)
     - [Synchronization](#synchronization)
         - ["One-Time" sync](#one-time-sync)
@@ -97,6 +98,12 @@ It made sense to choose Todoist since:
     * I had seen a "Hello World" app that pulled tasks from their API, but had no experience using it personally.
 1. I knew others who used Todoist.
     * This would allow me to potentially trial the system with them
+
+# Why a CLI?
+
+While usability could have been dramatically improved by making a web-service hosted in the cloud, the choice of making a command-line-interface (CLI) utility was a decision based on time constraints. 
+
+For more discussion of this, see [Next Steps](next_steps.md#usability).
 
 # Functional Requirements
 
