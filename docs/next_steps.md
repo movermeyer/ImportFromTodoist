@@ -18,7 +18,9 @@ Most of these can also be found in the [backlog in GitHub Issues](https://github
     - [Logging](#logging)
     - [More Complete Tests](#more-complete-tests)
     - [Rate Limiting](#rate-limiting)
-    - [Internationalization i18n](#internationalization-i18n)
+    - [Usability](#usability)
+        - [Ease of installation](#ease-of-installation)
+        - [Internationalization (i18n)](#internationalization-i18n)
     - [Scalability](#scalability)
         - [Bounded caches](#bounded-caches)
         - [Paging](#paging)
@@ -99,7 +101,22 @@ Both [Todoist](https://developer.todoist.com/sync/v7/#limits24) and [GitHub](htt
 
 See [Issue #15](https://github.com/movermeyer/ImportFromTodoist/issues/15)
 
-## Internationalization i18n
+## Usability
+
+### Ease of installation
+
+While `import_from_todoist` should be easy for Ruby developers to run, it is considerably more difficult to run for other users.
+
+Even non-Ruby developers will have a harder time, if only because they have to install and learn to use tooling like `bundler`.
+
+Non-developer user have a very limited chance of being able to make use of `import_from_todoist`.
+
+Given more time, work could be done to change the way that the user interacts with the utility.
+
+It seems likely that it would make sense to refactor the utility to be a [GitHub App](https://developer.github.com/v3/apps/), and possibly integrate it as a [Todoist Applet/Integration](https://support.todoist.com/hc/en-us/sections/115001108265-Integrations). By adding a web UI and hosting it in the cloud, `import_from_todoist` could be dramatically simpler to use.
+This route was considered at the outset of the project, but was rejected due to the time constraints imposed by having to learn Ruby.
+
+### Internationalization (i18n)
 
 Given more time, I would research an internationalization (i18n) gem/framework for Ruby and pull out all the user-facing strings so that users of any language can benefit from `import_from_todoist`. 
 
