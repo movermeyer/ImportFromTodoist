@@ -75,11 +75,12 @@ Using `import_from_todoist` is done by calling the `cli.rb` script:
 
 ```
 > ruby .\cli.rb --help
-Import Todoist Tasks into GitHub Issues.
+Imports Todoist Tasks into GitHub Issues.
 Usage: ./cli.rb [options]
         --projects x,y,z             Which Todoist projects to import tasks from.
-        --repo user/repo             Which GitHub repo to import tasks into (ex. movermeyer/TestRepo).
+        --repo user/repo             Which GitHub repo to import tasks into (ex. octocat/Hello-World).
         --no-cache                   Delete any caches prior to running
+        --allow-public               Allow this program to import into public repos. Disallowed by default due to the risk of leaking sensitive information to the whole world.
     -h, --help                       Prints this help
 ```
 
@@ -107,10 +108,13 @@ Here is the high-level description of the conversion. For a detailed description
 
 #### Top Level Objects
 
-| Todoist Object  | GitHub Object |
-| --------------- | ------------- |
-| Task            | Issue         |
-| Project         | Project       |
+| Todoist Object  | GitHub Object   |
+| --------------- | --------------- |
+| Task            | Issue           |
+| Project         | Project         |
+| Label           | Label           |
+| Comment         | Issue Comment   |
+| Project Comment | Project Comment |
 
 #### Tasks
 

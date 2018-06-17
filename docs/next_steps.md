@@ -1,6 +1,6 @@
 # Introduction
 
-There was not enough time to implement all the features needed for `import_from_todoist` to be considered complete.
+There are more features needed for `import_from_todoist` to be considered complete.
 Further, there are several refactorings that should be done in order to clean up code smells. 
 
 This page will document the state of the project at the time of submission, and discuss areas that could be improved given more time.
@@ -36,12 +36,12 @@ Currently, `import_from_todoist` has nearly all the necessary functionality of a
 
 Implemented functionality:
 
-* Import Tasks, Projects, and Comments from Todoist
-* Idempotently update imported objects on successive runs
+* Imports all the major Todoist objects ([Tasks, Projects, Comments, and Labels](#data_mapping.md)) into GitHub Issues
+* Idempotently updates imported objects on successive runs
 
-For a list of notable missing functionality, see the [README](README.md#missing-functionality)
+For a list of notable missing functionality, see the [README](../README.md#missing-functionality)
 
-I feel that each of these missing features are not core to the use To-Do App use case, but would have to be implemented for the project to be considered complete.
+I feel that each of these missing features are not core to the To-Do App use case, but would have to be implemented for the project to be considered complete.
 
 For an extensive list, see the [backlog in GitHub Issues](https://github.com/movermeyer/ImportFromTodoist/issues)
 
@@ -49,7 +49,7 @@ For an extensive list, see the [backlog in GitHub Issues](https://github.com/mov
 
 ## Caching
 
-Perhaps the biggest problem with the way the code is currently structured relates to the way caching is being done. It is currently being done in multiple places, in inconsistent ways.
+Perhaps the biggest problem with the current codebase is the way caching is being done. It is currently being done in multiple places, and in inconsistent ways.
 
 The caching belongs in a layer that would sit between the [`System` and the `API Access Classes`](code_walkthrough.md#a-quick-note-about-caching)
 
@@ -109,7 +109,7 @@ While `import_from_todoist` should be easy for Ruby developers to run, it is con
 
 Even non-Ruby developers will have a harder time, if only because they have to install and learn to use tooling like `bundler`.
 
-Non-developer user have a very limited chance of being able to make use of `import_from_todoist`.
+Non-developer users have a very limited chance of being able to make use of `import_from_todoist`.
 
 Given more time, work could be done to change the way that the user interacts with the utility.
 
@@ -136,7 +136,7 @@ More effort needs to be made to make use of paging mechanisms. While the Todoist
 
 ### Parallelism
 
-Even with more time, I might not implement parallel processing without consideration. Parallelism is notoriously for adding complexing and maintenance overhead to code-bases. The fact that some processing steps of `import_from_todoist` require serial processing (ex. issue comments need to be added to issues in the same order) would mean that any potential performance gains from parallelism would be bounded by [Amdahl's Law](https://en.wikipedia.org/wiki/Amdahl%27s_law). Without restruacturing the entire codebase (to use a pattern or framework specifically meant for this use case), and without a real-world use demand for it, I suspect the overhead would be too much.
+Even with more time, I might not implement parallel processing without consideration. Parallelism is notoriously for adding complexing and maintenance overhead to code-bases. The fact that some processing steps of `import_from_todoist` require serial processing (ex. issue comments need to be added to issues in the same order) would mean that any potential performance gains from parallelism would be bounded by [Amdahl's Law](https://en.wikipedia.org/wiki/Amdahl%27s_law). Without restructuring the entire codebase (to use a pattern or framework specifically meant for this use case), and without a real-world use demand for it, I suspect the overhead would be too much.
 
 # Fundamental re-architecting
 
