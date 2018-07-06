@@ -66,7 +66,7 @@ This is obviously not the case. Every network request could fail in any one of m
 Things to do:
 - Protect against intermittent network failures
 - Protect against remote server issues (ex. `5xx` status codes)
-- Protect against rate limit exceptions (See #15)
+- Protect against rate limit exceptions (See [Issue #15](https://github.com/movermeyer/ImportFromTodoist/issues/15))
 - Error loudly on anything else other than successful status code
 
 See [Issue #22](https://github.com/movermeyer/ImportFromTodoist/issues/22).
