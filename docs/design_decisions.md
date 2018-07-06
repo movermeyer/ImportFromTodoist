@@ -113,10 +113,10 @@ The original [problem statement](problem_statement.md) was fairly simple and ope
 
 The first big decision of the project was that of synchronization: What level of synchronization was I aiming for?:
 
-* ["One-time" sync](#one-time-sync)
-* [Sync changes from Todoist](#sync-changes-from-todoist)
+1. ["One-time" sync](#one-time-sync)
+2. [Sync changes from Todoist](#sync-changes-from-todoist)
     * [Sync Deletions](#sync-deletions)
-* [Bi-directional sync](#bi-directional-sync)
+3. [Bi-directional sync](#bi-directional-sync)
 
 I decided to implement the second option in `import_from_todoist`, and if given more time would have implemented deletion synchronization as an optional flag.
 (You can read more about the implementation of [idempotency in `import_from_todoist` here](#idempotency-in-import-from-todoist)) 
@@ -170,7 +170,7 @@ In Todoist, when you complete a task, the task disappears from your view. You ca
 Todoist has a few different ways to organize and view your tasks:
 
 1. "Project View": You can group tasks into Projects, and then view your tasks by Project
-1. "Label View": You can apply labels (ie, tags) to tasks, and then view your tasks by Label
+1. "Label View": You can apply labels (ie. tags) to tasks, and then view your tasks by Label
 1. "Priority View": You can apply priorities (1-4, with 1 = "Very Urgent", 4 = "Normal urgency"), and then view your tasks by Priority
 1. "Due Date View": You can apply due dates to tasks, and then view your tasks sorted by due date
 
@@ -179,7 +179,9 @@ Given my experience using Todoist, I felt that these 4 ways of organizing and vi
 I confirmed this list of core functionality by [interviewing another user](https://www.interaction-design.org/literature/article/how-to-conduct-user-interviews) of Todoist about how they use the software, as well as reading [Todoist's documentation](https://todoist.com/guide/getting-started) and seeing that they also focus on this set of functionality. 
 
 I also tried to verify the claim that the [problem statement's](problem_statement.md) claim that:
+
 > Many people decide to use GitHub Issues in favor of other task managers or To-Do applications
+
 in hopes of learning from their workflows while designing my user experience.
 While I didn't spend much time on this, I didn't end up finding explanations of workflows more advanced than using the checkbox Markdown syntax in a Gist.
 
@@ -202,13 +204,13 @@ Issues are used for discussions of:
 
 Once the discussion was resolved, the Issues were marked as "closed" (from their default state of "open").
 
-In my case Issues filled the role of an analogue to Tasks in Todoist.
+In my case, Issues filled the role of an analogue to Tasks in Todoist.
 
 ### Milestones
 
 Issues could be assigned to **Milestones**. This offered a view of a list of items that was, at first blush, very similar to Todoist's "Project View".
 
-They were used to group issues within a repository and track the count of remaining open Issues. As Issues are closed, the milestone's progress bar changes to reflect this.
+Milestones were used to group issues within a repository and track the count of remaining open Issues. As Issues are closed, the milestone's progress bar changes to reflect this.
 
 Most importantly, Milestones were the only concept that offered any native concept of due date. 
 
@@ -251,7 +253,7 @@ The downsides of this method were:
 The trickiest of the views to model was the "Due Date View". This was a result of GitHub not having great native support for due dates. Issues themselves cannot be assigned due dates. This is probably a good thing as software projects can get bogged down by managing due dates without providing value. But in Todoist, due dates were first-class, and seeing which Tasks are due soon (or over-due) was an important piece of functionality.
 
 The only mechanism within GitHub Issues with a concept of due date was the Milestones mechanism.
-Further, Milestone due dates were limited to a granularity of 1 day, while Todoist had sub-day due "dates" (ex. "2018-06-10T18:00:00Z").
+Further, Milestone due dates were limited to a granularity of 1 day (ex. "2018-06-10"), while Todoist had sub-day due "dates" (ex. "2018-06-10T18:00:00Z").
 
 Two ideas for how to implement the "Due Date View" came to mind:
 
@@ -321,7 +323,7 @@ Benefits of this approach:
 Detriments of this approach:
 
 * Completed Issues are still displayed "front and centre" on the Project page (`projects/<id>` endpoint)
-* Not great screen real estate usage. Usually users only care about "To Do" column, but always see "Completed" and "Comments" columns too. 
+* Not great screen real estate usage. Usually users only care about "To Do" column, but always see the "Comments" column too. 
     * No way to resize columns to fill the page / stress importance. No way to collapse or hide columns.
 
 #### Milestones as Projects
@@ -340,8 +342,6 @@ This would have the advantage of looking more visually similar to Todoist Projec
 While the major data mapping decisions were the above, there were plenty of other small decisions made.
 For a more thorough exploration of the mapping, see the [Data Mapping document](data_mapping.md).
 
-## Sharing
-
 # Idempotency in `import_from_todoist`
 
 Having decided to implement `import_from_todoist` as a utility [that uses Todoist as a source of truth for syncing changes to GitHub Issues](#synchronization), it followed that idempotent processing was going to be a necessity.
@@ -350,7 +350,7 @@ Idempotency is one of the implicit requirements of any data processing / [ETL](h
 
 Being idempotent is useful, not only for ease of development, but also for recovery from potential errors/crashes, power failures, and other processing interruptions.
 
-It was also reasonable expect that a user might want to continue using the original To-Do App, either while they transition to GitHub Issues, or simply forevermore. 
+It was also reasonable to expect that a user might want to continue using the original To-Do App, either while they transition to GitHub Issues, or simply forevermore. 
 
 Idempotence of the importer implies that you either:
 
@@ -406,20 +406,20 @@ Our threat model allows for:
 Notably our threat model assumes:
 * `import_from_todoist` is running on a trusted computing environment
     * The machine running `import_from_todoist` is not compromised, either physically or via software.
-* Malicious actor cannot impeded access to the Internet
+* Malicious actor cannot impede access to the Internet
 
 ### Untrusted Input
 If malicious inputs are used by `import_from_todoist`, 
 
 There are several sources of malicious input possible:
 
-* The Todoist projects that `import_from_todoist` can be shared amongst many collaborators. 
+* The Todoist projects that `import_from_todoist` processes can be shared amongst many collaborators. 
     * Those contributors might be able to craft malicious Tasks, Comments, etc.
 * The GitHub repo that `import_from_todoist` writes to could be shared amongst many collaborators.
     * Those contributors might be able to craft malicious Issue bodies, Comments, etc.
 * Either Todoist or GitHub themselves could provide malicious data to `import_from_todoist` via their APIs.
 
-All of `import_from_todoist`'s communication with third-parties is done via HTTPS, which typically enough to ensure confidentiality + integrity of communications.
+All of `import_from_todoist`'s communication with third-parties is done via HTTPS, which is typically enough to ensure confidentiality + integrity of communications across the network.
 But if something is able to break those guarantees (ex. corporate MitM firewall), then it could also be a source of untrusted input. 
 
 This means the users other than the user running `import_from_todoist` could influence the inputs that `import_from_todoist` use.
