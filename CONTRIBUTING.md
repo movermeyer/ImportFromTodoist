@@ -38,5 +38,5 @@ ruby test/import_from_todoist/system_test.rb
 ruby test/import_from_todoist/todoist/label_test.rb
 ```
 
-There is likely an easier way to find and run all the tests with one command (similar to Python's test runners), bt being new to Ruby, I ran out of time and didn't learn of it. If you know how to do this, feel free to submit a PR to this document.
+There is likely an easier way to find and run all the tests with one command (similar to Python's test runners), but being new to Ruby, I ran out of time and didn't learn of it. If you know how to do this, feel free to submit a PR to this document.
 
